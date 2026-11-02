@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="es" data-bs-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="description" content="ChatArchive — Visualizador, organizador y archivo local privado de conversaciones exportadas de WhatsApp.">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="ChatArchive">
+
+  <title>ChatArchive — Archivo Privado de WhatsApp</title>
+
+  <!-- PWA Manifest & Favicons (Rutas relativas para GitHub Pages) -->
+  <link rel="manifest" href="./manifest.json">
+  <link rel="icon" type="image/svg+xml" href="./assets/logo/logo.svg">
+  <link rel="apple-touch-icon" href="./assets/icons/icon-192.png">
+
+  <!-- Estilos Locales de Vendor (Sin CDN) -->
+  <link rel="stylesheet" href="./vendor/bootstrap/css/bootstrap.min.css">
+  <link rel="stylesheet" href="./vendor/bootstrap-icons/font/bootstrap-icons.min.css">
+
+  <!-- Estilos de la Aplicación -->
+  <link rel="stylesheet" href="./css/style.css">
+  <link rel="stylesheet" href="./css/components.css">
+  <link rel="stylesheet" href="./css/chat.css">
+  <link rel="stylesheet" href="./css/responsive.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Navbar Superior -->
+    <header class="ca-navbar">
+      <div class="container-xl py-2 d-flex align-items-center justify-content-between">
+        <!-- Logotipo y Nombre -->
+        <a href="#dashboard" class="ca-navbar-brand" aria-label="ChatArchive Inicio">
+          <img src="./assets/logo/logo.svg" alt="ChatArchive" class="ca-logo-img">
+          <span>ChatArchive</span>
+        </a>
+
+        <!-- Enlaces de Navegación para Pantallas Medianas y Grandes -->
+        <nav class="ca-desktop-nav d-none d-md-flex align-items-center gap-1" aria-label="Navegación principal">
+          <a href="#dashboard" class="ca-nav-link" data-route="dashboard">
+            <i class="bi bi-house-door" aria-hidden="true"></i>
+            <span>Inicio</span>
+          </a>
+          <a href="#library" class="ca-nav-link" data-route="library">
+            <i class="bi bi-collection" aria-hidden="true"></i>
+            <span>Biblioteca</span>
+          </a>
+          <a href="#import" class="ca-nav-link" data-route="import">
+            <i class="bi bi-cloud-arrow-up" aria-hidden="true"></i>
+            <span>Importar</span>
+          </a>
+          <a href="#settings" class="ca-nav-link" data-route="settings">
+            <i class="bi bi-gear" aria-hidden="true"></i>
+            <span>Ajustes</span>
+          </a>
+        </nav>
+
+        <!-- Acciones Rápidas del Navbar -->
+        <div class="d-flex align-items-center gap-2">
+          <!-- Indicador de Red (Online / Offline) -->
+          <span id="networkStatusBadge" class="badge ca-badge-soft-success d-none d-sm-inline-flex align-items-center gap-1">
+            <i class="bi bi-wifi" aria-hidden="true"></i> Conectado
+          </span>
+
+          <!-- Alternador de Tema Claro / Oscuro -->
+          <button 
+            type="button" 
+            class="btn btn-outline-secondary btn-icon-only border-0" 
+            id="btnToggleTheme" 
+            title="Alternar modo oscuro / claro"
+            aria-label="Alternar modo oscuro / claro"
+          >
+            <i class="bi bi-moon-stars-fill text-secondary" aria-hidden="true"></i>
+          </button>
+
+          <!-- Botón de Ayuda Rápida -->
+          <button 
+            type="button" 
+            class="btn btn-outline-secondary btn-icon-only border-0 d-none d-sm-inline-flex" 
+            data-bs-toggle="modal" 
+            data-bs-target="#aboutModal"
+            title="Acerca de ChatArchive"
+            aria-label="Información de la aplicación"
+          >
+            <i class="bi bi-info-circle" aria-hidden="true"></i>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Contenido Dinámico de la Vista Activa -->
+    <main id="mainContent" class="flex-grow-1" role="main"></main>
+
+    <!-- Barra de Navegación Inferior para Móviles (Bottom Nav) -->
+    <nav class="ca-bottom-nav" aria-label="Navegación móvil">
+      <a href="#dashboard" class="ca-bottom-nav-item" data-route="dashboard" aria-label="Inicio">
+        <i class="bi bi-house-door" aria-hidden="true"></i>
+        <span>Inicio</span>
+      </a>
+      <a href="#library" class="ca-bottom-nav-item" data-route="library" aria-label="Biblioteca">
+        <i class="bi bi-collection" aria-hidden="true"></i>
+        <span>Biblioteca</span>
+      </a>
+      <a href="#import" class="ca-bottom-nav-item" data-route="import" aria-label="Importar">
+        <i class="bi bi-cloud-arrow-up" aria-hidden="true"></i>
+        <span>Importar</span>
+      </a>
+      <a href="#settings" class="ca-bottom-nav-item" data-route="settings" aria-label="Ajustes">
+        <i class="bi bi-gear" aria-hidden="true"></i>
+        <span>Ajustes</span>
+      </a>
+    </nav>
+
+    <!-- Footer Discreto para Desktop -->
+    <footer class="py-3 border-top border-ca mt-auto bg-ca-surface d-none d-md-block">
+      <div class="container-xl d-flex flex-wrap justify-content-between align-items-center gap-2 small text-ca-muted">
+        <div>
+          <span>ChatArchive</span> — Archivo 100% privado en dispositivo
+        </div>
+        <div class="d-flex align-items-center gap-3">
+          <span><i class="bi bi-shield-check text-success me-1" aria-hidden="true"></i> Sin servidores externos</span>
+          <span><i class="bi bi-hdd me-1" aria-hidden="true"></i> Almacenamiento local IndexedDB</span>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Contenedor Global de Notificaciones Toast -->
+  <div class="ca-toast-container" id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- Modal Acerca de ChatArchive -->
+  <div class="modal fade" id="aboutModal" tabindex="-1" aria-labelledby="aboutModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div class="d-flex align-items-center gap-2">
+            <img src="./assets/logo/logo.svg" alt="ChatArchive" width="28" height="28" class="rounded">
+            <h5 class="modal-title fw-bold" id="aboutModalLabel">Acerca de ChatArchive</h5>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <p class="small text-ca-muted mb-3">
+            <strong>ChatArchive</strong> es una aplicación web progresiva (PWA) diseñada para importar, visualizar y conservar tus chats exportados de WhatsApp en un entorno seguro y privado.
+          </p>
+          <div class="p-3 border-ca border rounded-3 bg-ca-elevated mb-3 small">
+            <div class="d-flex align-items-center gap-2 text-success fw-semibold mb-1">
+              <i class="bi bi-shield-lock-fill" aria-hidden="true"></i>
+              <span>Privacidad Garantizada</span>
+            </div>
+            <div class="text-ca-muted">
+              Tus archivos no se envían a ningún servidor en la nube ni se comparten con servicios de analíticas.
+            </div>
+          </div>
+          <ul class="list-unstyled small text-ca-muted mb-0 d-flex flex-column gap-1">
+            <li><i class="bi bi-check2 text-primary me-1" aria-hidden="true"></i> Compatible con Android, Windows y Web</li>
+            <li><i class="bi bi-check2 text-primary me-1" aria-hidden="true"></i> Funciona sin conexión a internet (Offline)</li>
+            <li><i class="bi bi-check2 text-primary me-1" aria-hidden="true"></i> Listo para desplegar en GitHub Pages</li>
+          </ul>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Entendido</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts Vendor Locales (Sin CDN) -->
+  <script src="./vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script src="./vendor/jszip/jszip.min.js"></script>
+
+  <!-- Módulos de la Aplicación -->
+  <script type="module" src="./js/app.js"></script>
+</body>
+</html>

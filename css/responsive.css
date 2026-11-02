@@ -1,0 +1,100 @@
+/**
+ * ChatArchive - Adaptación Responsiva (Móvil, Tablet y Desktop)
+ */
+
+/* ==========================================================================
+   Barra de Navegación Inferior para Móviles (Bottom Navigation Bar)
+   ========================================================================== */
+.ca-bottom-nav {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  background-color: var(--ca-navbar-bg);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-top: 1px solid var(--ca-border-color);
+  z-index: 1040;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.ca-bottom-nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  color: var(--ca-text-muted);
+  font-size: 0.725rem;
+  font-weight: 500;
+  text-decoration: none;
+  min-height: 48px;
+  transition: all 0.15s ease;
+}
+.ca-bottom-nav-item i {
+  font-size: 1.25rem;
+}
+.ca-bottom-nav-item:hover, .ca-bottom-nav-item.active {
+  color: var(--ca-primary);
+}
+.ca-bottom-nav-item.active i {
+  transform: translateY(-1px);
+}
+
+/* ==========================================================================
+   Breakpoints Responsivos
+   ========================================================================== */
+@media (max-width: 767.98px) {
+  /* Mostrar navegación inferior y dar espacio al footer */
+  .ca-bottom-nav {
+    display: flex;
+  }
+  
+  body {
+    padding-bottom: 70px;
+  }
+
+  /* Ocultar elementos de navegación secundarios del top navbar en móvil */
+  .ca-desktop-nav {
+    display: none !important;
+  }
+
+  .ca-stat-card {
+    padding: 1rem;
+  }
+  .ca-stat-number {
+    font-size: 1.25rem;
+  }
+
+  .ca-dropzone {
+    padding: 2rem 1rem;
+  }
+  .ca-dropzone-icon {
+    font-size: 2.5rem;
+  }
+
+  .ca-message-bubble {
+    max-width: 88%;
+  }
+
+  .ca-privacy-banner {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.75rem;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 991.98px) {
+  .ca-stat-card {
+    padding: 1.1rem;
+  }
+}
+
+@media (min-width: 992px) {
+  .ca-bottom-nav {
+    display: none;
+  }
+}

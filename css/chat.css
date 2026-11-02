@@ -1,0 +1,139 @@
+/**
+ * ChatArchive - Estilos del Visor de Mensajes
+ * Reconstrucción estética y fluida de burbujas de conversación
+ */
+
+.ca-chat-container {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 120px);
+  background-color: var(--ca-bg-body);
+  position: relative;
+  overflow: hidden;
+}
+
+.ca-chat-header {
+  background-color: var(--ca-bg-surface);
+  border-bottom: 1px solid var(--ca-border-color);
+  padding: 0.75rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 10;
+}
+
+.ca-chat-messages-area {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+/* Separadores de fecha */
+.ca-date-separator {
+  align-self: center;
+  background-color: var(--ca-bg-surface-elevated);
+  color: var(--ca-text-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.35rem 0.85rem;
+  border-radius: 1rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  margin: 0.75rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Burbujas de mensaje */
+.ca-message-bubble {
+  max-width: 75%;
+  padding: 0.65rem 0.95rem 0.45rem;
+  border-radius: 1rem;
+  position: relative;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  word-break: break-word;
+  line-height: 1.45;
+}
+
+.ca-message-bubble.incoming {
+  align-self: flex-start;
+  background-color: var(--ca-bubble-in);
+  color: var(--ca-bubble-in-text);
+  border-bottom-left-radius: 0.25rem;
+}
+
+.ca-message-bubble.outgoing {
+  align-self: flex-end;
+  background-color: var(--ca-bubble-out);
+  color: var(--ca-bubble-out-text);
+  border-bottom-right-radius: 0.25rem;
+}
+
+.ca-message-author {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--ca-primary);
+  margin-bottom: 0.2rem;
+}
+
+.ca-message-text {
+  font-size: 0.925rem;
+  white-space: pre-wrap;
+}
+
+.ca-message-meta {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.35rem;
+  font-size: 0.7rem;
+  color: var(--ca-text-muted);
+  margin-top: 0.25rem;
+  user-select: none;
+}
+
+/* Mensajes de sistema */
+.ca-message-system {
+  align-self: center;
+  max-width: 85%;
+  background-color: rgba(100, 116, 139, 0.12);
+  color: var(--ca-text-muted);
+  font-size: 0.785rem;
+  padding: 0.4rem 0.95rem;
+  border-radius: 0.75rem;
+  text-align: center;
+  margin: 0.35rem 0;
+}
+
+/* Botones flotantes de navegación rápida (primer mensaje / último mensaje) */
+.ca-chat-floating-controls {
+  position: absolute;
+  right: 1.25rem;
+  bottom: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  z-index: 20;
+}
+.ca-floating-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background-color: var(--ca-bg-surface-elevated);
+  color: var(--ca-text-main);
+  border: 1px solid var(--ca-border-color);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+.ca-floating-btn:hover {
+  background-color: var(--ca-primary);
+  color: #ffffff;
+  border-color: var(--ca-primary);
+  transform: scale(1.08);
+}

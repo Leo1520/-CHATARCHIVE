@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" fill="none">
+  <defs>
+    <linearGradient id="caGrad512" x1="64" y1="64" x2="448" y2="448" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#10b981" />
+      <stop offset="60%" stop-color="#059669" />
+      <stop offset="100%" stop-color="#047857" />
+    </linearGradient>
+    <linearGradient id="caCard512" x1="112" y1="144" x2="400" y2="368" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.95" />
+      <stop offset="100%" stop-color="#f0fdf4" stop-opacity="0.9" />
+    </linearGradient>
+    <filter id="caShadow512" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="16" stdDeviation="20" flood-color="#047857" flood-opacity="0.32" />
+    </filter>
+  </defs>
+  
+  <rect x="48" y="48" width="416" height="416" rx="112" fill="url(#caGrad512)" filter="url(#caShadow512)" />
+  <path d="M120 368 L80 432 L176 392 Z" fill="#047857" opacity="0.9" />
+
+  <rect x="120" y="128" width="272" height="72" rx="28" fill="url(#caCard512)" />
+  <rect x="144" y="184" width="224" height="168" rx="24" fill="#ffffff" fill-opacity="0.22" />
+  <rect x="136" y="216" width="240" height="152" rx="32" fill="url(#caCard512)" />
+  
+  <rect x="208" y="248" width="96" height="24" rx="12" fill="#059669" />
+  
+  <circle cx="344" cy="328" r="40" fill="#10b981" stroke="#ffffff" stroke-width="9" />
+  <path d="M332 328 L341.3 337.3 L357.3 318.7" stroke="#ffffff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" />
+</svg>

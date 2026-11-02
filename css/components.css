@@ -1,0 +1,295 @@
+/**
+ * ChatArchive - Componentes UI
+ * Estilos específicos para navbar, cards, dropzone, botones, modales y estados vacíos
+ */
+
+/* ==========================================================================
+   Navbar Principal
+   ========================================================================== */
+.ca-navbar {
+  background-color: var(--ca-navbar-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--ca-navbar-border);
+  position: sticky;
+  top: 0;
+  z-index: 1030;
+  transition: var(--ca-theme-transition);
+}
+
+.ca-navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  font-weight: 700;
+  font-size: 1.25rem;
+  color: var(--ca-text-main);
+  text-decoration: none;
+}
+.ca-navbar-brand:hover {
+  color: var(--ca-primary);
+}
+
+.ca-logo-img {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  object-fit: contain;
+}
+
+.ca-nav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--ca-text-muted);
+  font-weight: 500;
+  padding: 0.5rem 0.85rem;
+  border-radius: 0.5rem;
+  transition: all 0.15s ease;
+}
+.ca-nav-link:hover {
+  color: var(--ca-primary);
+  background-color: rgba(5, 150, 105, 0.08);
+}
+.ca-nav-link.active {
+  color: var(--ca-primary);
+  background-color: rgba(5, 150, 105, 0.12);
+  font-weight: 600;
+}
+
+/* ==========================================================================
+   Tarjetas de Estadísticas (Dashboard)
+   ========================================================================== */
+.ca-stat-card {
+  background-color: var(--ca-bg-surface);
+  border: 1px solid var(--ca-border-color);
+  border-radius: 1rem;
+  padding: 1.25rem;
+  box-shadow: var(--ca-card-shadow);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.ca-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--ca-card-shadow-hover);
+  border-color: var(--ca-primary-border);
+}
+
+.ca-stat-icon-wrapper {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.45rem;
+  flex-shrink: 0;
+}
+.ca-stat-icon-emerald {
+  background-color: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+}
+.ca-stat-icon-blue {
+  background-color: rgba(2, 132, 199, 0.15);
+  color: #0284c7;
+}
+.ca-stat-icon-purple {
+  background-color: rgba(139, 92, 246, 0.15);
+  color: #8b5cf6;
+}
+.ca-stat-icon-amber {
+  background-color: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+}
+
+.ca-stat-number {
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--ca-text-main);
+}
+.ca-stat-label {
+  font-size: 0.85rem;
+  color: var(--ca-text-muted);
+  font-weight: 500;
+}
+
+/* ==========================================================================
+   Banner de Privacidad Local
+   ========================================================================== */
+.ca-privacy-banner {
+  background: linear-gradient(135deg, rgba(5, 150, 105, 0.12) 0%, rgba(2, 132, 199, 0.08) 100%);
+  border: 1px solid rgba(5, 150, 105, 0.25);
+  border-radius: 1rem;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+/* ==========================================================================
+   Zona de Carga Drag & Drop
+   ========================================================================== */
+.ca-dropzone {
+  background-color: var(--ca-dropzone-bg);
+  border: 2px dashed var(--ca-dropzone-border);
+  border-radius: 1.25rem;
+  padding: 3rem 1.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+.ca-dropzone:hover, .ca-dropzone.drag-active {
+  background-color: var(--ca-dropzone-hover-bg);
+  border-color: var(--ca-dropzone-hover-border);
+}
+.ca-dropzone-icon {
+  font-size: 3.25rem;
+  color: var(--ca-primary);
+  margin-bottom: 1rem;
+  display: inline-block;
+  transition: transform 0.2s ease;
+}
+.ca-dropzone:hover .ca-dropzone-icon {
+  transform: translateY(-4px) scale(1.05);
+}
+
+/* ==========================================================================
+   Tarjetas de Conversación en Biblioteca
+   ========================================================================== */
+.ca-chat-card {
+  background-color: var(--ca-bg-surface);
+  border: 1px solid var(--ca-border-color);
+  border-radius: 1rem;
+  padding: 1.15rem;
+  box-shadow: var(--ca-card-shadow);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+.ca-chat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--ca-card-shadow-hover);
+  border-color: var(--ca-primary);
+}
+
+.ca-chat-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: rgba(5, 150, 105, 0.12);
+  color: var(--ca-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+  flex-shrink: 0;
+}
+
+/* ==========================================================================
+   Estados Vacíos (Empty States)
+   ========================================================================== */
+.ca-empty-state {
+  text-align: center;
+  padding: 3.5rem 1.5rem;
+}
+.ca-empty-icon {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background-color: rgba(100, 116, 139, 0.1);
+  color: var(--ca-text-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.2rem;
+  margin-bottom: 1.25rem;
+}
+
+/* ==========================================================================
+   Botones e Iconografía
+   ========================================================================== */
+.btn-ca-primary {
+  background-color: var(--ca-primary);
+  border-color: var(--ca-primary);
+  color: #ffffff;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 1.15rem;
+  border-radius: 0.65rem;
+  transition: all 0.15s ease;
+}
+.btn-ca-primary:hover, .btn-ca-primary:focus {
+  background-color: var(--ca-primary-hover);
+  border-color: var(--ca-primary-hover);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+.btn-ca-primary:active {
+  background-color: var(--ca-primary-active);
+  border-color: var(--ca-primary-active);
+  transform: translateY(0);
+}
+
+.btn-icon-only {
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+}
+
+/* ==========================================================================
+   Badges y Píldoras
+   ========================================================================== */
+.ca-badge-soft-success {
+  background-color: rgba(16, 185, 129, 0.15);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  font-weight: 600;
+}
+[data-bs-theme="dark"] .ca-badge-soft-success {
+  background-color: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.ca-badge-soft-info {
+  background-color: rgba(2, 132, 199, 0.15);
+  color: #0284c7;
+  border: 1px solid rgba(2, 132, 199, 0.25);
+  font-weight: 600;
+}
+[data-bs-theme="dark"] .ca-badge-soft-info {
+  background-color: rgba(2, 132, 199, 0.2);
+  color: #38bdf8;
+  border-color: rgba(2, 132, 199, 0.3);
+}
+
+/* ==========================================================================
+   Toasts y Modales
+   ========================================================================== */
+.ca-toast-container {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 1090;
+}
+.modal-content {
+  background-color: var(--ca-bg-surface);
+  border: 1px solid var(--ca-border-color);
+  border-radius: 1.25rem;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.25);
+}
+.modal-header {
+  border-bottom-color: var(--ca-border-color);
+}
+.modal-footer {
+  border-top-color: var(--ca-border-color);
+}
