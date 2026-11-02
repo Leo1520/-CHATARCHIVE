@@ -3,7 +3,7 @@
  * Compatible con GitHub Pages (sin rutas absolutas al dominio raíz)
  */
 
-const CACHE_NAME = 'chatarchive-cache-v1.6.0';
+const CACHE_NAME = 'chatarchive-cache-v1.7.0';
 
 // Lista de recursos locales esenciales para funcionamiento 100% offline
 const STATIC_ASSETS = [
@@ -32,6 +32,7 @@ const STATIC_ASSETS = [
   './css/chat.css',
   './css/responsive.css',
   './css/bottom-nav.css',
+  './css/tutorial.css',
 
   // Módulos JavaScript Core, Vistas y Componentes
   './js/app.js',
@@ -39,6 +40,8 @@ const STATIC_ASSETS = [
   './js/core/state.js',
   './js/core/router.js',
   './js/components/bottom-nav.js',
+  './js/components/tutorial.js',
+  './js/components/pwa-install-banner.js',
   './js/utils/helpers.js',
   './js/utils/dates.js',
   './js/utils/validation.js',

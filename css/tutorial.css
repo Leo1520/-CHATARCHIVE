@@ -1,0 +1,230 @@
+/**
+ * ChatArchive - Estilos del Tutorial de Bienvenida y Banner de Instalación PWA
+ * Diseño moderno, responsive, compatible con temas Claro y Oscuro (Bootstrap 5.3)
+ */
+
+/* ==========================================================================
+   1. Tutorial de Bienvenida (Modal y Componentes de Onboarding)
+   ========================================================================== */
+
+.ca-tutorial-modal .modal-content {
+  background-color: var(--ca-bg-surface);
+  border: 1px solid var(--ca-border-color);
+  border-radius: 1.5rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+}
+
+.ca-tutorial-modal .modal-header {
+  border-bottom: 1px solid var(--ca-border-color);
+  padding: 1.25rem 1.75rem 1rem;
+}
+
+.ca-tutorial-modal .modal-body {
+  padding: 1.75rem;
+  max-height: calc(85vh - 160px);
+  overflow-y: auto;
+}
+
+.ca-tutorial-modal .modal-footer {
+  border-top: 1px solid var(--ca-border-color);
+  padding: 1rem 1.75rem 1.25rem;
+  background-color: var(--ca-bg-surface);
+}
+
+/* Barra de Progreso del Tutorial */
+.ca-tutorial-progress-container {
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+.ca-tutorial-progress-bar {
+  height: 6px;
+  background-color: rgba(100, 116, 139, 0.15);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.ca-tutorial-progress-fill {
+  height: 100%;
+  background-color: var(--ca-primary);
+  border-radius: 3px;
+  transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Transición suave entre pasos */
+.ca-tutorial-step {
+  animation: tutorialStepFadeIn 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes tutorialStepFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Ilustraciones y Diagramas Mockup del Tutorial */
+.ca-tutorial-visual-card {
+  background-color: var(--ca-bg-surface-elevated);
+  border: 1px solid var(--ca-border-color);
+  border-radius: 1rem;
+  padding: 1.25rem;
+  margin: 1.25rem 0 1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.ca-tutorial-step-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background-color: rgba(5, 150, 105, 0.15);
+  color: var(--ca-primary);
+  font-weight: 700;
+  font-size: 0.85rem;
+  margin-right: 0.5rem;
+}
+
+/* Mini Simulación de Chat para Paso 3 */
+.ca-mockup-chat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.ca-mockup-bubble-in {
+  align-self: flex-start;
+  background-color: var(--ca-bubble-in);
+  color: var(--ca-bubble-in-text);
+  padding: 0.5rem 0.85rem;
+  border-radius: 0.85rem 0.85rem 0.85rem 0.25rem;
+  max-width: 85%;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+.ca-mockup-bubble-out {
+  align-self: flex-end;
+  background-color: var(--ca-bubble-out);
+  color: var(--ca-bubble-out-text);
+  padding: 0.5rem 0.85rem;
+  border-radius: 0.85rem 0.85rem 0.25rem 0.85rem;
+  max-width: 85%;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+/* Mini Simulación de Perspectiva para Paso 4 */
+.ca-mockup-perspective-demo {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+
+.ca-mockup-mode-pill {
+  border: 1px solid var(--ca-border-color);
+  background-color: var(--ca-bg-surface);
+  border-radius: 0.75rem;
+  padding: 0.65rem 0.5rem;
+  text-align: center;
+}
+
+.ca-mockup-mode-pill.active {
+  border-color: var(--ca-primary);
+  background-color: rgba(5, 150, 105, 0.1);
+  color: var(--ca-primary);
+  font-weight: 600;
+}
+
+/* ==========================================================================
+   2. Banner Flotante de Instalación PWA
+   ========================================================================== */
+
+.ca-pwa-banner {
+  position: fixed;
+  z-index: 1050;
+  background-color: var(--ca-bg-surface);
+  border: 1px solid var(--ca-border-color);
+  border-radius: 1.25rem;
+  padding: 1.15rem 1.25rem;
+  box-shadow: 0 14px 35px rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease;
+  pointer-events: auto;
+}
+
+/* Posición en Desktop / PC (esquina inferior derecha) */
+@media (min-width: 768px) {
+  .ca-pwa-banner {
+    bottom: 1.5rem;
+    right: 1.5rem;
+    max-width: 440px;
+    width: calc(100% - 3rem);
+  }
+}
+
+/* Posición en Móvil (elevado sobre la barra de navegación inferior) */
+@media (max-width: 767.98px) {
+  .ca-pwa-banner {
+    bottom: calc(var(--bnav-height, 78px) + 12px + env(safe-area-inset-bottom, 0px));
+    left: 1rem;
+    right: 1rem;
+    width: auto;
+  }
+}
+
+/* Estados de Animación del Banner */
+.ca-pwa-banner-hidden {
+  transform: translateY(130%) scale(0.96);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.ca-pwa-banner-visible {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+}
+
+.ca-pwa-icon-box {
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  background-color: rgba(5, 150, 105, 0.15);
+  color: var(--ca-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.45rem;
+  flex-shrink: 0;
+}
+
+[data-bs-theme="dark"] .ca-pwa-icon-box {
+  background-color: rgba(5, 150, 105, 0.25);
+  color: #34d399;
+}
+
+/* Modal de Instrucciones para iOS Safari */
+.ca-ios-install-modal .modal-content {
+  border-radius: 1.5rem;
+  border: 1px solid var(--ca-border-color);
+  background-color: var(--ca-bg-surface);
+}
+
+.ca-ios-step-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--ca-border-color);
+}
+
+.ca-ios-step-row:last-child {
+  border-bottom: none;
+}

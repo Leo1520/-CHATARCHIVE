@@ -7,6 +7,7 @@ import { CONFIG } from '../core/config.js';
 import { formatBytes, showToast } from '../utils/helpers.js';
 import { BackupExporter } from '../backup/export.js';
 import { BackupRestorer } from '../backup/restore.js';
+import { tutorialManager } from '../components/tutorial.js';
 
 let pendingValidationResult = null;
 
@@ -205,6 +206,29 @@ export function renderSettings(container) {
                   <span><strong>Totalmente Offline:</strong> Funciona como Progressive Web App (PWA) sin requerir conexión a internet.</span>
                 </li>
               </ul>
+            </div>
+          </div>
+
+          <!-- Sección: Ayuda y Bienvenida -->
+          <div class="card bg-ca-surface border-ca shadow-sm rounded-4 mb-4">
+            <div class="card-header bg-transparent border-ca py-3 px-4">
+              <h2 class="h6 mb-0 fw-bold d-flex align-items-center gap-2">
+                <i class="bi bi-question-circle text-primary" aria-hidden="true"></i>
+                <span>Ayuda y Bienvenida</span>
+              </h2>
+            </div>
+            <div class="card-body p-4">
+              <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
+                <div>
+                  <h3 class="h6 fw-bold mb-1">Tutorial de Bienvenida</h3>
+                  <p class="text-ca-muted small mb-0">
+                    Repasa el funcionamiento de la biblioteca, la importación de chats, los modos de perspectiva y la privacidad cuando lo desees.
+                  </p>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-primary flex-shrink-0" id="btnRestartTutorial">
+                  <i class="bi bi-play-circle me-1" aria-hidden="true"></i> Volver a ver el tutorial
+                </button>
+              </div>
             </div>
           </div>
 
@@ -423,6 +447,14 @@ function setupSettingsListeners(container) {
         pendingValidationResult = null;
         hideProgress();
       }
+    });
+  }
+
+  // 6. Volver a ver el tutorial interactivo
+  const btnRestartTutorial = container.querySelector('#btnRestartTutorial');
+  if (btnRestartTutorial) {
+    btnRestartTutorial.addEventListener('click', () => {
+      tutorialManager.show(true);
     });
   }
 }

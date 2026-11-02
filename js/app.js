@@ -9,6 +9,8 @@ import { router } from './core/router.js';
 import { showToast } from './utils/helpers.js';
 import { ConversationsRepository } from './database/conversations.js';
 import { initBottomNav } from './components/bottom-nav.js';
+import { tutorialManager } from './components/tutorial.js';
+import { pwaInstallBannerManager } from './components/pwa-install-banner.js';
 
 class App {
   constructor() {
@@ -55,11 +57,11 @@ class App {
     // 7. Registrar Service Worker para soporte PWA y modo Offline
     this.registerServiceWorker();
 
-    // 8. Configurar evento de instalación PWA
-    this.setupPwaInstallPrompt();
-
-    // 9. Inicializar Tooltips de Bootstrap
+    // 8. Inicializar Tooltips de Bootstrap
     this.initTooltips();
+
+    // 9. Coordinar secuencia obligatoria: Tutorial de bienvenida -> Banner PWA (5s)
+    this.setupOnboardingAndInstallFlow();
   }
 
   setupNavbarListeners() {
@@ -127,41 +129,20 @@ class App {
     }
   }
 
-  setupPwaInstallPrompt() {
-    let deferredPrompt = null;
-    const btnInstall = document.getElementById('btnInstallPwa');
-
-    window.addEventListener('beforeinstallprompt', (e) => {
-      // Prevenir el banner automático para mostrar el botón de la UI
-      e.preventDefault();
-      deferredPrompt = e;
-
-      if (btnInstall) {
-        btnInstall.classList.remove('d-none');
-        btnInstall.classList.add('d-inline-flex');
-
-        btnInstall.addEventListener('click', async () => {
-          btnInstall.classList.add('d-none');
-          btnInstall.classList.remove('d-inline-flex');
-
-          if (deferredPrompt) {
-            deferredPrompt.prompt();
-            const { outcome } = await deferredPrompt.userChoice;
-            console.log(`[ChatArchive PWA] Respuesta del usuario a instalación: ${outcome}`);
-            deferredPrompt = null;
-          }
-        }, { once: true });
-      }
-    });
-
-    window.addEventListener('appinstalled', () => {
-      console.log('[ChatArchive PWA] Aplicación instalada exitosamente');
-      showToast('¡Instalación Exitosa!', 'ChatArchive ya está disponible en tu pantalla principal.', 'success');
-      if (btnInstall) {
-        btnInstall.classList.add('d-none');
-        btnInstall.classList.remove('d-inline-flex');
-      }
-    });
+  setupOnboardingAndInstallFlow() {
+    // Secuencia obligatoria:
+    // 1. Si el usuario es nuevo, se muestra el tutorial de bienvenida y se bloquea el banner.
+    // 2. Al completarse u omitirse el tutorial, se esperan 5 segundos y se evalúa el banner PWA.
+    // 3. Si ya completó u omitió el tutorial en visitas previas, se esperan 5 segundos tras iniciar la app.
+    if (!tutorialManager.isCompletedOrSkipped()) {
+      pwaInstallBannerManager.setTutorialActive(true);
+      setTimeout(() => {
+        tutorialManager.show(false);
+      }, 400);
+    } else {
+      pwaInstallBannerManager.setTutorialActive(false);
+      pwaInstallBannerManager.scheduleBanner(5000);
+    }
   }
 
   initTooltips() {
