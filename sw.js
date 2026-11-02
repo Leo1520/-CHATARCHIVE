@@ -3,7 +3,7 @@
  * Compatible con GitHub Pages (sin rutas absolutas al dominio raíz)
  */
 
-const CACHE_NAME = 'chatarchive-cache-v1.0.0';
+const CACHE_NAME = 'chatarchive-cache-v1.1.0';
 
 // Lista de recursos locales esenciales para funcionamiento 100% offline
 const STATIC_ASSETS = [
@@ -32,16 +32,25 @@ const STATIC_ASSETS = [
   './css/chat.css',
   './css/responsive.css',
 
-  // Módulos JavaScript
+  // Módulos JavaScript Core y Vistas
   './js/app.js',
   './js/core/config.js',
   './js/core/state.js',
   './js/core/router.js',
   './js/utils/helpers.js',
+  './js/utils/dates.js',
+  './js/utils/validation.js',
   './js/views/dashboard.js',
   './js/views/library.js',
   './js/views/settings.js',
-  './js/import/importer.js'
+  
+  // Módulos de Importación y Parser (Etapa 2)
+  './js/import/importer.js',
+  './js/import/parser.js',
+  './js/import/txt-reader.js',
+  './js/import/zip-reader.js',
+  './js/import/media-handler.js',
+  './workers/parser-worker.js'
 ];
 
 // Instalación: Cachear recursos estáticos
