@@ -48,7 +48,10 @@ class App {
     // 6. Registrar Service Worker para soporte PWA y modo Offline
     this.registerServiceWorker();
 
-    // 7. Inicializar Tooltips de Bootstrap
+    // 7. Configurar evento de instalación PWA
+    this.setupPwaInstallPrompt();
+
+    // 8. Inicializar Tooltips de Bootstrap
     this.initTooltips();
   }
 
@@ -115,6 +118,43 @@ class App {
         console.warn('[ChatArchive PWA] Error al registrar Service Worker:', err);
       }
     }
+  }
+
+  setupPwaInstallPrompt() {
+    let deferredPrompt = null;
+    const btnInstall = document.getElementById('btnInstallPwa');
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      // Prevenir el banner automático para mostrar el botón de la UI
+      e.preventDefault();
+      deferredPrompt = e;
+
+      if (btnInstall) {
+        btnInstall.classList.remove('d-none');
+        btnInstall.classList.add('d-inline-flex');
+
+        btnInstall.addEventListener('click', async () => {
+          btnInstall.classList.add('d-none');
+          btnInstall.classList.remove('d-inline-flex');
+
+          if (deferredPrompt) {
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            console.log(`[ChatArchive PWA] Respuesta del usuario a instalación: ${outcome}`);
+            deferredPrompt = null;
+          }
+        }, { once: true });
+      }
+    });
+
+    window.addEventListener('appinstalled', () => {
+      console.log('[ChatArchive PWA] Aplicación instalada exitosamente');
+      showToast('¡Instalación Exitosa!', 'ChatArchive ya está disponible en tu pantalla principal.', 'success');
+      if (btnInstall) {
+        btnInstall.classList.add('d-none');
+        btnInstall.classList.remove('d-inline-flex');
+      }
+    });
   }
 
   initTooltips() {
