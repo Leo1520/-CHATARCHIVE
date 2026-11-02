@@ -3,7 +3,7 @@
  * Compatible con GitHub Pages (sin rutas absolutas al dominio raíz)
  */
 
-const CACHE_NAME = 'chatarchive-cache-v1.1.0';
+const CACHE_NAME = 'chatarchive-cache-v1.2.0';
 
 // Lista de recursos locales esenciales para funcionamiento 100% offline
 const STATIC_ASSETS = [
@@ -43,6 +43,11 @@ const STATIC_ASSETS = [
   './js/views/dashboard.js',
   './js/views/library.js',
   './js/views/settings.js',
+
+  // Módulos de Base de Datos Local IndexedDB (Etapa 3)
+  './js/database/db.js',
+  './js/database/conversations.js',
+  './js/database/messages.js',
   
   // Módulos de Importación y Parser (Etapa 2)
   './js/import/importer.js',

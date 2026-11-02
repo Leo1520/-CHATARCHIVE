@@ -7,6 +7,7 @@ import { state } from './core/state.js';
 import { CONFIG } from './core/config.js';
 import { router } from './core/router.js';
 import { showToast } from './utils/helpers.js';
+import { ConversationsRepository } from './database/conversations.js';
 
 class App {
   constructor() {
@@ -30,7 +31,15 @@ class App {
     this.setupNavbarListeners();
     this.setupConnectivityListeners();
 
-    // 4. Actualizar estimación de almacenamiento local
+    // 4. Cargar estadísticas de IndexedDB y actualizar almacenamiento local
+    try {
+      const globalStats = await ConversationsRepository.getGlobalStats();
+      state.stats.totalConversations = globalStats.totalConversations;
+      state.stats.totalMessages = globalStats.totalMessages;
+      state.stats.totalMediaFiles = globalStats.totalMedia;
+    } catch (e) {
+      console.warn('[ChatArchive] IndexedDB aún no inicializado o vacío:', e);
+    }
     await state.updateStorageEstimate();
 
     // 5. Inicializar el enrutador cliente

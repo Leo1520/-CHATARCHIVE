@@ -1,12 +1,29 @@
 /**
  * ChatArchive - Vista de Dashboard / Inicio
+ * Conectado con IndexedDB para estadísticas y conversaciones recientes
  */
 
 import { state } from '../core/state.js';
-import { formatBytes } from '../utils/helpers.js';
+import { formatBytes, formatDate, escapeHTML } from '../utils/helpers.js';
+import { ConversationsRepository } from '../database/conversations.js';
 
-export function renderDashboard(container) {
-  const { totalConversations, totalMessages, totalMediaFiles } = state.stats;
+export async function renderDashboard(container) {
+  // 1. Obtener estadísticas globales reales
+  let globalStats = { totalConversations: 0, totalMessages: 0, totalMedia: 0 };
+  let recentConversations = [];
+
+  try {
+    globalStats = await ConversationsRepository.getGlobalStats();
+    recentConversations = await ConversationsRepository.getAll('importedAt', 'desc');
+    // Actualizar estado reactivo
+    state.stats.totalConversations = globalStats.totalConversations;
+    state.stats.totalMessages = globalStats.totalMessages;
+    state.stats.totalMediaFiles = globalStats.totalMedia;
+    await state.updateStorageEstimate();
+  } catch (err) {
+    console.warn('[ChatArchive] No se pudieron cargar estadísticas en Dashboard:', err);
+  }
+
   const { usage, quota, percent } = state.storageEstimate;
 
   const html = `
@@ -42,11 +59,11 @@ export function renderDashboard(container) {
         <div class="flex-grow-1">
           <h2 class="h6 mb-1 fw-bold text-success">Privacidad Garantizada al 100%</h2>
           <p class="mb-0 small text-ca-muted">
-            Todas tus conversaciones, archivos multimedia y datos se procesan y almacenan exclusivamente en este dispositivo. Sin servidores externos, sin nube y sin telemetría.
+            Todas tus conversaciones, archivos multimedia y datos se procesan y almacenan exclusivamente en este dispositivo mediante IndexedDB. Sin servidores externos, sin nube y sin telemetría.
           </p>
         </div>
         <div class="badge ca-badge-soft-success px-3 py-2 rounded-pill">
-          <i class="bi bi-hdd-network me-1" aria-hidden="true"></i> Modo Offline Activo
+          <i class="bi bi-hdd-network me-1" aria-hidden="true"></i> Almacenamiento Local
         </div>
       </div>
 
@@ -58,7 +75,7 @@ export function renderDashboard(container) {
               <i class="bi bi-chat-square-text" aria-hidden="true"></i>
             </div>
             <div>
-              <div class="ca-stat-number" id="dashTotalChats">${totalConversations}</div>
+              <div class="ca-stat-number" id="dashTotalChats">${globalStats.totalConversations}</div>
               <div class="ca-stat-label">Conversaciones</div>
             </div>
           </div>
@@ -70,7 +87,7 @@ export function renderDashboard(container) {
               <i class="bi bi-chat-dots" aria-hidden="true"></i>
             </div>
             <div>
-              <div class="ca-stat-number" id="dashTotalMessages">${totalMessages}</div>
+              <div class="ca-stat-number" id="dashTotalMessages">${globalStats.totalMessages.toLocaleString()}</div>
               <div class="ca-stat-label">Mensajes Guardados</div>
             </div>
           </div>
@@ -82,7 +99,7 @@ export function renderDashboard(container) {
               <i class="bi bi-paperclip" aria-hidden="true"></i>
             </div>
             <div>
-              <div class="ca-stat-number" id="dashTotalMedia">${totalMediaFiles}</div>
+              <div class="ca-stat-number" id="dashTotalMedia">${globalStats.totalMedia.toLocaleString()}</div>
               <div class="ca-stat-label">Archivos Multimedia</div>
             </div>
           </div>
@@ -114,20 +131,7 @@ export function renderDashboard(container) {
               <a href="#library" class="small text-decoration-none">Ver todas <i class="bi bi-chevron-right" aria-hidden="true"></i></a>
             </div>
             <div class="card-body p-4 d-flex flex-column justify-content-center" id="recentChatsContainer">
-              <!-- Estado Vacío Inicial -->
-              <div class="ca-empty-state">
-                <div class="ca-empty-icon">
-                  <i class="bi bi-chat-left-text" aria-hidden="true"></i>
-                </div>
-                <h3 class="h5 fw-bold mb-2">Aún no tienes conversaciones importadas</h3>
-                <p class="text-ca-muted small mb-4 mx-auto" style="max-width: 420px;">
-                  Comienza agregando un archivo exportado de WhatsApp (.zip o .txt) para reconstruir y explorar tus chats.
-                </p>
-                <a href="#import" class="btn btn-ca-primary">
-                  <i class="bi bi-cloud-arrow-up" aria-hidden="true"></i>
-                  <span>Importar Primera Conversación</span>
-                </a>
-              </div>
+              ${renderRecentChatsContent(recentConversations.slice(0, 5))}
             </div>
           </div>
         </div>
@@ -146,7 +150,7 @@ export function renderDashboard(container) {
                   <span class="badge ca-badge-soft-info">${percent}% en uso</span>
                 </div>
                 <p class="small text-ca-muted mb-2">
-                  Memoria disponible en la base de datos local de tu navegador (IndexedDB).
+                  Memoria asignada a la base de datos IndexedDB en tu navegador.
                 </p>
                 <div class="progress mb-3" style="height: 8px;">
                   <div class="progress-bar bg-success" role="progressbar" style="width: ${Math.max(percent, 2)}%;" aria-valuenow="${percent}" aria-valuemin="0" aria-valuemax="100"></div>
@@ -197,4 +201,48 @@ export function renderDashboard(container) {
   `;
 
   container.innerHTML = html;
+}
+
+function renderRecentChatsContent(chats) {
+  if (!chats || chats.length === 0) {
+    return `
+      <div class="ca-empty-state">
+        <div class="ca-empty-icon">
+          <i class="bi bi-chat-left-text" aria-hidden="true"></i>
+        </div>
+        <h3 class="h5 fw-bold mb-2">Aún no tienes conversaciones importadas</h3>
+        <p class="text-ca-muted small mb-4 mx-auto" style="max-width: 420px;">
+          Comienza agregando un archivo exportado de WhatsApp (.zip o .txt) para reconstruir y explorar tus chats.
+        </p>
+        <a href="#import" class="btn btn-ca-primary">
+          <i class="bi bi-cloud-arrow-up" aria-hidden="true"></i>
+          <span>Importar Primera Conversación</span>
+        </a>
+      </div>
+    `;
+  }
+
+  const itemsHtml = chats.map(c => `
+    <div class="p-3 border-bottom border-ca d-flex align-items-center justify-content-between gap-3 hover-bg">
+      <div class="d-flex align-items-center gap-3 min-w-0">
+        <div class="ca-chat-avatar flex-shrink-0">
+          <i class="bi bi-chat-dots" aria-hidden="true"></i>
+        </div>
+        <div class="text-truncate">
+          <h3 class="h6 mb-0 fw-bold text-truncate text-ca-main">${escapeHTML(c.title)}</h3>
+          <small class="text-ca-muted d-block text-truncate">
+            Último mensaje: ${c.lastDate ? formatDate(c.lastDate, true) : 'Desconocido'}
+          </small>
+        </div>
+      </div>
+      <div class="d-flex align-items-center gap-2 flex-shrink-0">
+        <span class="badge ca-badge-soft-success">${c.totalMessages.toLocaleString()} msgs</span>
+        <a href="#chat?id=${c.id}" class="btn btn-sm btn-outline-secondary" title="Ver conversación" aria-label="Ver conversación">
+          <i class="bi bi-chevron-right" aria-hidden="true"></i>
+        </a>
+      </div>
+    </div>
+  `).join('');
+
+  return `<div class="d-flex flex-column">${itemsHtml}</div>`;
 }

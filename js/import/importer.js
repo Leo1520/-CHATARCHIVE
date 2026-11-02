@@ -1,13 +1,13 @@
-/**
- * ChatArchive - Controlador de Importación y Procesamiento de Conversaciones
- * Integración con ZipReader, TXTReader, WhatsAppParser y MediaManager
- */
-
 import { ZipReader, deduceChatTitle } from './zip-reader.js';
 import { readTextFile } from './txt-reader.js';
 import { WhatsAppParser } from './parser.js';
 import { mediaManager } from './media-handler.js';
 import { formatDate, escapeHTML, showToast } from '../utils/helpers.js';
+import { ConversationsRepository } from '../database/conversations.js';
+import { MessagesRepository } from '../database/messages.js';
+import { state } from '../core/state.js';
+
+let lastParsedPayload = null;
 
 export function renderImporterView(container) {
   const html = `
@@ -279,12 +279,76 @@ function setupImporterInteractions(container) {
   // Botón de guardar en base de datos
   const btnSave = container.querySelector('#btnSaveToDatabase');
   if (btnSave) {
-    btnSave.addEventListener('click', () => {
-      showToast(
-        'Conversación Analizada',
-        'La conversación y los archivos están listos. En la Etapa 3 se almacenarán permanentemente en IndexedDB.',
-        'success'
-      );
+    btnSave.addEventListener('click', async () => {
+      if (!lastParsedPayload) {
+        showToast('Error', 'No hay datos de conversación para guardar.', 'warning');
+        return;
+      }
+
+      btnSave.disabled = true;
+      btnSave.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Guardando...';
+
+      try {
+        const payload = lastParsedPayload;
+
+        // Comprobar posible duplicado
+        const duplicate = await ConversationsRepository.findPotentialDuplicate(payload.title, payload.lastDate);
+        if (duplicate) {
+          const proceed = window.confirm(`Ya existe una conversación archivada con el nombre "${payload.title}" y fecha similar.\n\n¿Deseas guardarla de todas formas como una nueva copia?`);
+          if (!proceed) {
+            btnSave.disabled = false;
+            btnSave.innerHTML = '<i class="bi bi-check-circle me-1" aria-hidden="true"></i> Confirmar y Guardar';
+            return;
+          }
+        }
+
+        const convId = `conv_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+
+        // 1. Guardar metadatos de la conversación
+        await ConversationsRepository.save({
+          id: convId,
+          title: payload.title,
+          participants: payload.participants,
+          totalMessages: payload.totalMessages,
+          mediaCount: payload.mediaCount,
+          firstDate: payload.firstDate ? payload.firstDate.toISOString() : null,
+          lastDate: payload.lastDate ? payload.lastDate.toISOString() : null,
+          importedAt: new Date().toISOString()
+        });
+
+        // 2. Guardar los mensajes en lote
+        await MessagesRepository.bulkSaveMessages(convId, payload.messages);
+
+        // 3. Guardar los archivos multimedia en Blob
+        if (mediaManager.mediaBlobs.size > 0) {
+          await MessagesRepository.saveMediaFiles(convId, mediaManager.mediaBlobs);
+        }
+
+        // 4. Actualizar estado global y almacenamiento
+        await state.updateStorageEstimate();
+        const globalStats = await ConversationsRepository.getGlobalStats();
+        state.stats = {
+          totalConversations: globalStats.totalConversations,
+          totalMessages: globalStats.totalMessages,
+          totalMediaFiles: globalStats.totalMedia,
+          totalStorageBytes: state.storageEstimate.usage
+        };
+        state.notify();
+
+        showToast(
+          '¡Conversación Guardada!',
+          `Se han almacenado con éxito ${payload.totalMessages.toLocaleString()} mensajes y ${payload.mediaCount} archivos en tu almacenamiento local.`,
+          'success'
+        );
+
+        // Redirigir a la Biblioteca
+        window.location.hash = '#library';
+      } catch (err) {
+        console.error('[ChatArchive] Error al guardar en IndexedDB:', err);
+        btnSave.disabled = false;
+        btnSave.innerHTML = '<i class="bi bi-check-circle me-1" aria-hidden="true"></i> Confirmar y Guardar';
+        showToast('Error de Almacenamiento', err.message || 'No se pudo guardar la conversación en la base de datos.', 'danger');
+      }
     });
   }
 }
@@ -372,6 +436,7 @@ async function processSelectedFile(file, container) {
  * Renderiza los resultados del análisis en la pantalla
  */
 function displayParsedResults(container, data) {
+  lastParsedPayload = data;
   const resultsArea = container.querySelector('#importResultsArea');
   if (!resultsArea) return;
 
