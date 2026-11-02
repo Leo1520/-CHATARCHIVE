@@ -3,7 +3,7 @@
  * Compatible con GitHub Pages (sin rutas absolutas al dominio raíz)
  */
 
-const CACHE_NAME = 'chatarchive-cache-v1.4.0';
+const CACHE_NAME = 'chatarchive-cache-v1.5.0';
 
 // Lista de recursos locales esenciales para funcionamiento 100% offline
 const STATIC_ASSETS = [
@@ -57,6 +57,10 @@ const STATIC_ASSETS = [
   './js/import/txt-reader.js',
   './js/import/zip-reader.js',
   './js/import/media-handler.js',
+
+  // Módulos de Respaldo y Restauración (Etapa 6)
+  './js/backup/export.js',
+  './js/backup/restore.js',
   
   // Web Workers
   './workers/parser-worker.js',
