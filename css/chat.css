@@ -439,3 +439,37 @@
   color: #fef08a;
 }
 
+/* ==========================================================================
+   Controles de Perspectiva del Visor (Vista Original / Emisor / Receptor)
+   ========================================================================== */
+.perspective-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 0.25rem;
+  border-color: var(--ca-border-color);
+  color: var(--ca-text-main);
+  background-color: transparent;
+  transition: all 0.2s ease;
+}
+
+.perspective-btn:hover {
+  background-color: var(--ca-bg-surface-elevated);
+  border-color: var(--ca-primary);
+  color: var(--ca-primary);
+}
+
+.perspective-btn.active,
+.customizer-perspective-btn.active {
+  background-color: var(--ca-primary) !important;
+  border-color: var(--ca-primary) !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 4px rgba(5, 150, 105, 0.3);
+}
+
+.perspective-btn i,
+.customizer-perspective-btn i {
+  font-size: 1rem;
+}
+

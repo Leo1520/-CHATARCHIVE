@@ -62,6 +62,15 @@ export async function renderChatViewer(container, params) {
   // Asignar colores a los participantes para diferenciación visual en grupos
   const participantColors = assignParticipantColors(conversation.participants || []);
 
+  // Determinar perspectiva inicial (original, emisor o receptor) y participante principal
+  const detected = detectPrimaryParticipant(conversation);
+  const perspectiveState = {
+    mode: conversation.perspective?.mode || 'sender',
+    primaryParticipant: conversation.perspective?.primaryParticipant || detected.name,
+    isCertain: detected.isCertain,
+    participants: conversation.participants || []
+  };
+
   const totalMessagesCount = conversation.totalMessages || 0;
   const participantsCount = (conversation.participants || []).length;
 
@@ -86,6 +95,96 @@ export async function renderChatViewer(container, params) {
 
         <!-- Acciones de la Cabecera -->
         <div class="d-flex align-items-center gap-1">
+          <!-- Selector de Perspectiva del Chat (Dropdown Elegante) -->
+          <div class="dropdown" id="perspectiveDropdownContainer">
+            <button 
+              type="button" 
+              class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1 border-0 px-2 py-1" 
+              id="btnPerspectiveDropdown"
+              data-bs-toggle="dropdown" 
+              data-bs-auto-close="outside"
+              aria-expanded="false"
+              title="Cambiar perspectiva de visualización" 
+              aria-label="Cambiar perspectiva de visualización"
+            >
+              <i class="bi bi-arrow-left-right text-primary" aria-hidden="true"></i>
+              <span class="d-none d-md-inline small fw-semibold" id="currentPerspectiveLabel">${getPerspectiveShortName(perspectiveState.mode)}</span>
+              <i class="bi bi-chevron-down small text-ca-muted" aria-hidden="true"></i>
+            </button>
+
+            <div class="dropdown-menu dropdown-menu-end shadow-lg border-ca p-3" style="min-width: 285px; max-width: 320px;" aria-labelledby="btnPerspectiveDropdown">
+              <div class="d-flex align-items-center justify-content-between mb-2">
+                <div class="d-flex align-items-center gap-2">
+                  <i class="bi bi-arrow-left-right text-primary" aria-hidden="true"></i>
+                  <span class="fw-bold small text-ca-main">Perspectiva del Chat</span>
+                </div>
+                <span class="badge ca-badge-soft-primary small" id="perspectiveBadgeMode">${getPerspectiveShortName(perspectiveState.mode)}</span>
+              </div>
+              <p class="text-ca-muted small mb-2" style="font-size: 0.78rem; line-height: 1.35;">
+                Elige cómo visualizar los mensajes sin alterar el orden ni el archivo original.
+              </p>
+
+              <!-- Botones segmentados de perspectiva -->
+              <div class="btn-group w-100 mb-2" role="group" aria-label="Modo de perspectiva">
+                <button 
+                  type="button" 
+                  class="btn btn-sm btn-outline-secondary perspective-btn ${perspectiveState.mode === 'original' ? 'active' : ''}" 
+                  data-perspective="original"
+                  title="Vista cronológica original con participantes diferenciados"
+                >
+                  <i class="bi bi-clock-history mb-1" aria-hidden="true"></i>
+                  <span style="font-size: 0.72rem;">Original</span>
+                </button>
+                <button 
+                  type="button" 
+                  class="btn btn-sm btn-outline-secondary perspective-btn ${perspectiveState.mode === 'sender' ? 'active' : ''}" 
+                  data-perspective="sender"
+                  title="Ver como emisor principal (mensajes propios a la derecha)"
+                >
+                  <i class="bi bi-box-arrow-right mb-1" aria-hidden="true"></i>
+                  <span style="font-size: 0.72rem;">Emisor</span>
+                </button>
+                <button 
+                  type="button" 
+                  class="btn btn-sm btn-outline-secondary perspective-btn ${perspectiveState.mode === 'receptor' ? 'active' : ''}" 
+                  data-perspective="receptor"
+                  title="Ver como receptor (mensajes de la otra persona a la derecha)"
+                >
+                  <i class="bi bi-box-arrow-in-left mb-1" aria-hidden="true"></i>
+                  <span style="font-size: 0.72rem;">Receptor</span>
+                </button>
+              </div>
+
+              <!-- Selector de Participante Principal -->
+              <div class="border-top border-ca pt-2 mt-2">
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                  <label class="form-label small fw-semibold text-ca-muted mb-0" for="headerPrimaryParticipantSelect" style="font-size: 0.75rem;">
+                    Usuario principal:
+                  </label>
+                  ${perspectiveState.isCertain ? `
+                    <span class="badge bg-success-subtle text-success border border-success-subtle" style="font-size: 0.65rem;" title="Detectado automáticamente">
+                      <i class="bi bi-check2" aria-hidden="true"></i> Auto
+                    </span>
+                  ` : `
+                    <span class="badge bg-warning-subtle text-warning border border-warning-subtle" style="font-size: 0.65rem;" title="Selección manual recomendada">
+                      <i class="bi bi-hand-index" aria-hidden="true"></i> Manual
+                    </span>
+                  `}
+                </div>
+                <select class="form-select form-select-sm border-ca bg-transparent text-ca-main" id="headerPrimaryParticipantSelect" style="font-size: 0.8rem;">
+                  ${(conversation.participants || []).map(p => `
+                    <option value="${escapeHTML(p.name)}" ${p.name === perspectiveState.primaryParticipant ? 'selected' : ''}>
+                      ${escapeHTML(p.name)} (${p.count} msgs)
+                    </option>
+                  `).join('')}
+                </select>
+                <small class="text-ca-muted d-block mt-1" style="font-size: 0.72rem;">
+                  Participante sobre el cual se orienta la perspectiva del visor.
+                </small>
+              </div>
+            </div>
+          </div>
+
           <!-- Botón de Búsqueda Avanzada -->
           <button 
             type="button" 
@@ -249,6 +348,37 @@ export async function renderChatViewer(container, params) {
         <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Cerrar"></button>
       </div>
       <div class="offcanvas-body">
+        <!-- Control de Perspectiva del Chat en Personalización -->
+        <div class="mb-4">
+          <label class="form-label small fw-semibold text-ca-muted mb-2 d-flex align-items-center justify-content-between">
+            <span>Perspectiva del Chat</span>
+            <span class="badge ca-badge-soft-primary" id="customizerPerspectiveBadge">${getPerspectiveShortName(perspectiveState.mode)}</span>
+          </label>
+          <div class="btn-group w-100 mb-2" role="group" aria-label="Perspectiva de la conversación">
+            <button type="button" class="btn btn-sm btn-outline-secondary customizer-perspective-btn ${perspectiveState.mode === 'original' ? 'active' : ''}" data-perspective="original">
+              <i class="bi bi-clock-history me-1" aria-hidden="true"></i> Original
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-secondary customizer-perspective-btn ${perspectiveState.mode === 'sender' ? 'active' : ''}" data-perspective="sender">
+              <i class="bi bi-box-arrow-right me-1" aria-hidden="true"></i> Emisor
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-secondary customizer-perspective-btn ${perspectiveState.mode === 'receptor' ? 'active' : ''}" data-perspective="receptor">
+              <i class="bi bi-box-arrow-in-left me-1" aria-hidden="true"></i> Receptor
+            </button>
+          </div>
+          ${conversation.participants && conversation.participants.length > 1 ? `
+            <div class="mt-2">
+              <label class="form-label small text-ca-muted mb-1" for="customizerParticipantSelect">Participante principal:</label>
+              <select class="form-select form-select-sm border-ca bg-transparent text-ca-main" id="customizerParticipantSelect">
+                ${(conversation.participants || []).map(p => `
+                  <option value="${escapeHTML(p.name)}" ${p.name === perspectiveState.primaryParticipant ? 'selected' : ''}>
+                    ${escapeHTML(p.name)} (${p.count} mensajes)
+                  </option>
+                `).join('')}
+              </select>
+            </div>
+          ` : ''}
+        </div>
+
         <div class="mb-4">
           <label class="form-label small fw-semibold text-ca-muted mb-2">Densidad de Mensajes</label>
           <div class="btn-group w-100" role="group">
@@ -373,14 +503,14 @@ export async function renderChatViewer(container, params) {
   container.innerHTML = html;
 
   // Iniciar la carga progresiva de mensajes
-  const chatContext = await initProgressiveMessageLoading(conversation, container, participantColors);
-  setupViewerControls(conversation, container, chatContext);
+  const chatContext = await initProgressiveMessageLoading(conversation, container, participantColors, perspectiveState);
+  setupViewerControls(conversation, container, chatContext, perspectiveState, participantColors);
 }
 
 /**
  * Carga mensajes de forma progresiva por bloques (50 por bloque)
  */
-async function initProgressiveMessageLoading(conversation, container, participantColors) {
+async function initProgressiveMessageLoading(conversation, container, participantColors, perspectiveState) {
   const messagesArea = container.querySelector('#chatMessagesArea');
   const spinner = container.querySelector('#initialLoadingSpinner');
 
@@ -389,8 +519,6 @@ async function initProgressiveMessageLoading(conversation, container, participan
   let isFetching = false;
   let hasMore = true;
   let lastRenderedDateKey = null;
-
-  const outgoingSender = determineOutgoingSender(conversation.participants);
 
   const loadNextBatch = async () => {
     if (isFetching || !hasMore) return;
@@ -422,7 +550,7 @@ async function initProgressiveMessageLoading(conversation, container, participan
           messagesArea.appendChild(dateSeparator);
         }
 
-        const msgRow = await renderMessageRow(msg, outgoingSender, conversation.id, participantColors);
+        const msgRow = await renderMessageRow(msg, perspectiveState, conversation.id, participantColors);
         messagesArea.appendChild(msgRow);
       }
 
@@ -477,7 +605,7 @@ async function initProgressiveMessageLoading(conversation, container, participan
               dateSeparator.textContent = msg.date ? formatDate(msg.date) : msg.rawDate;
               messagesArea.appendChild(dateSeparator);
             }
-            const msgRow = await renderMessageRow(msg, outgoingSender, conversation.id, participantColors);
+            const msgRow = await renderMessageRow(msg, perspectiveState, conversation.id, participantColors);
             messagesArea.appendChild(msgRow);
           }
           currentOffset += batch.length;
@@ -530,7 +658,7 @@ async function initProgressiveMessageLoading(conversation, container, participan
               sep.textContent = m.date ? formatDate(m.date) : m.rawDate;
               frag.appendChild(sep);
             }
-            const row = await renderMessageRow(m, outgoingSender, conversation.id, participantColors);
+            const row = await renderMessageRow(m, perspectiveState, conversation.id, participantColors);
             frag.appendChild(row);
           }
           notice.after(frag);
@@ -554,7 +682,7 @@ async function initProgressiveMessageLoading(conversation, container, participan
           dateSeparator.textContent = msg.date ? formatDate(msg.date) : msg.rawDate;
           messagesArea.appendChild(dateSeparator);
         }
-        const msgRow = await renderMessageRow(msg, outgoingSender, conversation.id, participantColors);
+        const msgRow = await renderMessageRow(msg, perspectiveState, conversation.id, participantColors);
         messagesArea.appendChild(msgRow);
       }
 
@@ -598,7 +726,7 @@ async function initProgressiveMessageLoading(conversation, container, participan
       for (const msg of chunk) {
         // Verificar si ya existe en el DOM
         if (!messagesArea.querySelector(`[data-msg-index="${msg.index}"]`)) {
-          const msgRow = await renderMessageRow(msg, outgoingSender, conversation.id, participantColors);
+          const msgRow = await renderMessageRow(msg, perspectiveState, conversation.id, participantColors);
           messagesArea.appendChild(msgRow);
         }
       }
@@ -611,11 +739,14 @@ async function initProgressiveMessageLoading(conversation, container, participan
 
 /**
  * Renderiza un mensaje individual con data-msg-index para localización del buscador
+ * y data-sender para adaptación reactiva de la perspectiva
  */
-async function renderMessageRow(msg, outgoingSender, conversationId, participantColors) {
+async function renderMessageRow(msg, perspectiveState, conversationId, participantColors) {
   const row = document.createElement('div');
   const msgIndex = msg.index !== undefined ? msg.index : msg.id;
   row.setAttribute('data-msg-index', msgIndex);
+  row.setAttribute('data-sender', msg.sender || '');
+  row.setAttribute('data-msg-type', msg.type || 'message');
 
   if (msg.type === 'system') {
     row.className = 'ca-message-row system';
@@ -628,15 +759,17 @@ async function renderMessageRow(msg, outgoingSender, conversationId, participant
     return row;
   }
 
-  const isOutgoing = msg.sender && (msg.sender === outgoingSender || msg.sender.toLowerCase() === 'tú' || msg.sender.toLowerCase() === 'you');
+  const { mode, primaryParticipant, participants } = perspectiveState;
+  const isOutgoing = isSenderOutgoing(msg.sender, mode, primaryParticipant, participants);
   row.className = `ca-message-row ${isOutgoing ? 'outgoing' : 'incoming'}`;
 
   const bubble = document.createElement('div');
   bubble.className = `ca-message-bubble ${isOutgoing ? 'outgoing' : 'incoming'}`;
 
   let authorHtml = '';
-  if (!isOutgoing && msg.sender) {
-    const color = participantColors[msg.sender] || 'var(--ca-primary)';
+  const showAuthor = shouldShowAuthor(msg.sender, isOutgoing, mode, participants);
+  if (showAuthor && msg.sender) {
+    const color = (participantColors && participantColors[msg.sender]) || 'var(--ca-primary)';
     authorHtml = `<div class="ca-message-author" style="color: ${color};">${escapeHTML(msg.sender)}</div>`;
   }
 
@@ -744,7 +877,7 @@ async function renderMessageRow(msg, outgoingSender, conversationId, participant
 /**
  * Configura los botones flotantes, modales y el buscador integrado
  */
-function setupViewerControls(conversation, container, chatContext) {
+function setupViewerControls(conversation, container, chatContext, perspectiveState, participantColors) {
   const messagesArea = container.querySelector('#chatMessagesArea');
   const btnScrollTop = container.querySelector('#btnScrollToTop');
   const btnScrollBottom = container.querySelector('#btnScrollToBottom');
@@ -861,6 +994,235 @@ function setupViewerControls(conversation, container, chatContext) {
       saveViewerPreferences(currentPrefs);
     });
   });
+
+  // 6. Controlador de Cambio de Perspectiva (Original / Emisor / Receptor)
+  const updatePerspective = async (newMode, newPrimary) => {
+    let modeChanged = newMode && newMode !== perspectiveState.mode;
+    let participantChanged = newPrimary && newPrimary !== perspectiveState.primaryParticipant;
+
+    if (!modeChanged && !participantChanged) return;
+
+    if (modeChanged) perspectiveState.mode = newMode;
+    if (participantChanged) perspectiveState.primaryParticipant = newPrimary;
+
+    // A. Actualizar reactiva e inmediatamente los mensajes en el DOM
+    applyPerspectiveToDOM(container, perspectiveState, participantColors);
+
+    // B. Sincronizar UI de la cabecera
+    const currentPerspectiveLabel = container.querySelector('#currentPerspectiveLabel');
+    if (currentPerspectiveLabel) {
+      currentPerspectiveLabel.textContent = getPerspectiveShortName(perspectiveState.mode);
+    }
+    const perspectiveBadgeMode = container.querySelector('#perspectiveBadgeMode');
+    if (perspectiveBadgeMode) {
+      perspectiveBadgeMode.textContent = getPerspectiveShortName(perspectiveState.mode);
+    }
+    container.querySelectorAll('.perspective-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.getAttribute('data-perspective') === perspectiveState.mode);
+    });
+
+    const headerPrimarySelect = container.querySelector('#headerPrimaryParticipantSelect');
+    if (headerPrimarySelect && headerPrimarySelect.value !== perspectiveState.primaryParticipant) {
+      headerPrimarySelect.value = perspectiveState.primaryParticipant;
+    }
+
+    // C. Sincronizar UI del offcanvas de personalización
+    const customizerBadge = container.querySelector('#customizerPerspectiveBadge');
+    if (customizerBadge) {
+      customizerBadge.textContent = getPerspectiveShortName(perspectiveState.mode);
+    }
+    container.querySelectorAll('.customizer-perspective-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.getAttribute('data-perspective') === perspectiveState.mode);
+    });
+    const customizerSelect = container.querySelector('#customizerParticipantSelect');
+    if (customizerSelect && customizerSelect.value !== perspectiveState.primaryParticipant) {
+      customizerSelect.value = perspectiveState.primaryParticipant;
+    }
+
+    // D. Persistir la preferencia de perspectiva de la conversación en IndexedDB
+    try {
+      conversation.perspective = {
+        mode: perspectiveState.mode,
+        primaryParticipant: perspectiveState.primaryParticipant
+      };
+      await ConversationsRepository.save(conversation);
+    } catch (err) {
+      console.error('[ChatArchive] Error al persistir la perspectiva en IndexedDB:', err);
+    }
+
+    // E. Notificación al usuario
+    showToast(`Perspectiva: ${getPerspectiveLabel(perspectiveState.mode)}`, 'info', 1800);
+  };
+
+  // Botones de perspectiva en la cabecera
+  container.querySelectorAll('.perspective-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const mode = btn.getAttribute('data-perspective');
+      updatePerspective(mode, null);
+    });
+  });
+
+  // Selector de participante en la cabecera
+  container.querySelector('#headerPrimaryParticipantSelect')?.addEventListener('change', (e) => {
+    updatePerspective(null, e.target.value);
+  });
+
+  // Botones de perspectiva en el Offcanvas de personalización
+  container.querySelectorAll('.customizer-perspective-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const mode = btn.getAttribute('data-perspective');
+      updatePerspective(mode, null);
+    });
+  });
+
+  // Selector de participante en el Offcanvas de personalización
+  container.querySelector('#customizerParticipantSelect')?.addEventListener('change', (e) => {
+    updatePerspective(null, e.target.value);
+  });
+}
+
+/**
+ * Detecta el usuario principal exportador de la conversación
+ */
+function detectPrimaryParticipant(conversation) {
+  const participants = conversation.participants || [];
+  if (participants.length === 0) {
+    return { name: '', isCertain: false };
+  }
+
+  // 1. Si ya se guardó una preferencia de perspectiva previa
+  if (conversation.perspective && conversation.perspective.primaryParticipant) {
+    const exists = participants.some(p => p.name === conversation.perspective.primaryParticipant);
+    if (exists) {
+      return { 
+        name: conversation.perspective.primaryParticipant, 
+        isCertain: true 
+      };
+    }
+  }
+
+  // 2. Buscar participante denominado 'Tú' o 'You'
+  const you = participants.find(p => {
+    const n = (p.name || '').trim().toLowerCase();
+    return n === 'tú' || n === 'tu' || n === 'you';
+  });
+  if (you) {
+    return { name: you.name, isCertain: true };
+  }
+
+  // 3. Fallback: primer participante, marcado como no cierto (para sugerir selección manual)
+  return { name: participants[0]?.name || '', isCertain: false };
+}
+
+/**
+ * Determina si un mensaje debe posicionarse a la derecha (outgoing) según la perspectiva seleccionada
+ */
+function isSenderOutgoing(sender, mode, primaryParticipant, participants) {
+  if (!sender) return false;
+  const sTrim = sender.trim().toLowerCase();
+
+  // 1. Vista Original: respeta la exportación de WhatsApp ('Tú'/'You' a la derecha, los demás a la izquierda)
+  if (mode === 'original') {
+    return sTrim === 'tú' || sTrim === 'tu' || sTrim === 'you';
+  }
+
+  // 2. Ver como Emisor: el usuario principal exportador siempre aparece a la derecha
+  if (mode === 'sender') {
+    return sender === primaryParticipant;
+  }
+
+  // 3. Ver como Receptor: invierte la perspectiva (la otra persona a la derecha, el usuario principal a la izquierda)
+  if (mode === 'receptor' || mode === 'receiver') {
+    if (participants && participants.length === 2) {
+      const other = participants.find(p => p.name !== primaryParticipant);
+      return other ? sender === other.name : sender !== primaryParticipant;
+    }
+    // En conversaciones grupales (> 2 participantes):
+    // El usuario principal pasa a la izquierda y el resto de los participantes a la derecha
+    return sender !== primaryParticipant;
+  }
+
+  return sender === primaryParticipant;
+}
+
+/**
+ * Determina si se debe mostrar el encabezado del nombre del autor en la burbuja
+ */
+function shouldShowAuthor(sender, isOutgoing, mode, participants) {
+  if (!sender) return false;
+
+  // En conversaciones grupales (> 2 participantes), siempre identificar a los participantes
+  if (participants && participants.length > 2) {
+    // Si es el emisor principal a la derecha en modo emisor, su nombre se puede omitir como en WhatsApp
+    if (isOutgoing && mode === 'sender') {
+      return false;
+    }
+    // Todos los demás participantes (o en modo receptor a la derecha/izquierda) muestran su nombre y color
+    return true;
+  }
+
+  // En conversaciones 1 a 1:
+  // Mensajes a la derecha (outgoing) no llevan nombre de autor
+  // Mensajes a la izquierda (incoming) muestran el nombre de la otra persona
+  return !isOutgoing;
+}
+
+/**
+ * Aplica la perspectiva actual a todos los mensajes ya presentes en el DOM de forma reactiva e instantánea
+ */
+function applyPerspectiveToDOM(container, perspectiveState, participantColors) {
+  const { mode, primaryParticipant, participants } = perspectiveState;
+  const rows = container.querySelectorAll('.ca-message-row:not(.system)');
+
+  rows.forEach(row => {
+    const sender = row.getAttribute('data-sender') || '';
+    const isOutgoing = isSenderOutgoing(sender, mode, primaryParticipant, participants);
+
+    row.classList.remove('outgoing', 'incoming');
+    row.classList.add(isOutgoing ? 'outgoing' : 'incoming');
+
+    const bubble = row.querySelector('.ca-message-bubble');
+    if (bubble) {
+      bubble.classList.remove('outgoing', 'incoming');
+      bubble.classList.add(isOutgoing ? 'outgoing' : 'incoming');
+
+      let authorEl = bubble.querySelector('.ca-message-author');
+      const showAuthor = shouldShowAuthor(sender, isOutgoing, mode, participants);
+
+      if (showAuthor && sender) {
+        const color = (participantColors && participantColors[sender]) || 'var(--ca-primary)';
+        if (!authorEl) {
+          authorEl = document.createElement('div');
+          authorEl.className = 'ca-message-author';
+          bubble.prepend(authorEl);
+        }
+        authorEl.style.color = color;
+        authorEl.textContent = sender;
+      } else if (!showAuthor && authorEl) {
+        authorEl.remove();
+      }
+    }
+  });
+}
+
+function getPerspectiveLabel(mode) {
+  switch (mode) {
+    case 'original': return 'Vista original';
+    case 'receiver':
+    case 'receptor': return 'Ver como receptor';
+    case 'sender':
+    default: return 'Ver como emisor';
+  }
+}
+
+function getPerspectiveShortName(mode) {
+  switch (mode) {
+    case 'original': return 'Original';
+    case 'receiver':
+    case 'receptor': return 'Receptor';
+    case 'sender':
+    default: return 'Emisor';
+  }
 }
 
 function determineOutgoingSender(participants) {
