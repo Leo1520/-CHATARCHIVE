@@ -9,6 +9,7 @@ import { renderDashboard } from '../views/dashboard.js';
 import { renderLibrary } from '../views/library.js';
 import { renderImporterView } from '../import/importer.js';
 import { renderSettings } from '../views/settings.js';
+import { renderChatViewer } from '../views/chat-viewer.js';
 
 export class Router {
   constructor() {
@@ -16,6 +17,7 @@ export class Router {
       [CONFIG.ROUTES.DASHBOARD]: renderDashboard,
       [CONFIG.ROUTES.LIBRARY]: renderLibrary,
       [CONFIG.ROUTES.IMPORT]: renderImporterView,
+      [CONFIG.ROUTES.CHAT]: renderChatViewer,
       [CONFIG.ROUTES.SETTINGS]: renderSettings
     };
 

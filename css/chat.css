@@ -1,139 +1,352 @@
 /**
- * ChatArchive - Estilos del Visor de Mensajes
- * Reconstrucción estética y fluida de burbujas de conversación
+ * ChatArchive - Estilos Avanzados del Visor de Conversaciones
+ * Reconstrucción moderna, carga progresiva, personalización visual y multimedia
  */
 
-.ca-chat-container {
+/* ==========================================================================
+   Contenedor Principal y Estructura
+   ========================================================================== */
+.ca-chat-viewport {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 120px);
-  background-color: var(--ca-bg-body);
+  height: calc(100vh - 65px);
   position: relative;
   overflow: hidden;
+  background-color: var(--ca-chat-bg, var(--ca-bg-body));
+  transition: var(--ca-theme-transition);
 }
 
+@media (max-width: 767.98px) {
+  .ca-chat-viewport {
+    height: calc(100vh - 60px);
+  }
+}
+
+/* Cabecera del Visor */
 .ca-chat-header {
-  background-color: var(--ca-bg-surface);
+  background-color: var(--ca-navbar-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--ca-border-color);
-  padding: 0.75rem 1.25rem;
+  padding: 0.65rem 1rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  z-index: 10;
+  gap: 0.75rem;
+  z-index: 20;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
-.ca-chat-messages-area {
+.ca-chat-header-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.ca-chat-title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--ca-text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ca-chat-subtitle {
+  font-size: 0.75rem;
+  color: var(--ca-text-muted);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ==========================================================================
+   Área de Mensajes con Scroll y Carga Progresiva
+   ========================================================================== */
+.ca-chat-messages-container {
   flex: 1;
   overflow-y: auto;
-  padding: 1.5rem 1rem;
+  overflow-x: hidden;
+  padding: 1.25rem 1rem 5rem;
   display: flex;
   flex-direction: column;
-  gap: 0.65rem;
+  gap: var(--ca-chat-message-gap, 0.55rem);
+  position: relative;
+  scroll-behavior: smooth;
 }
 
-/* Separadores de fecha */
+/* Indicador de carga de mensajes anteriores */
+.ca-chat-load-more {
+  align-self: center;
+  margin-bottom: 0.75rem;
+}
+
+/* ==========================================================================
+   Separadores de Fecha (Date Separators)
+   ========================================================================== */
 .ca-date-separator {
   align-self: center;
   background-color: var(--ca-bg-surface-elevated);
+  border: 1px solid var(--ca-border-color);
   color: var(--ca-text-muted);
   font-size: 0.75rem;
   font-weight: 600;
-  padding: 0.35rem 0.85rem;
-  border-radius: 1rem;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-  margin: 0.75rem 0;
+  padding: 0.35rem 0.95rem;
+  border-radius: 2rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  margin: 0.85rem 0 0.5rem;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.035em;
+  user-select: none;
 }
 
-/* Burbujas de mensaje */
+/* ==========================================================================
+   Burbujas de Mensaje y Variantes de Participantes
+   ========================================================================== */
+.ca-message-row {
+  display: flex;
+  width: 100%;
+}
+.ca-message-row.incoming {
+  justify-content: flex-start;
+}
+.ca-message-row.outgoing {
+  justify-content: flex-end;
+}
+.ca-message-row.system {
+  justify-content: center;
+}
+
 .ca-message-bubble {
-  max-width: 75%;
-  padding: 0.65rem 0.95rem 0.45rem;
-  border-radius: 1rem;
+  max-width: 78%;
+  min-width: 110px;
+  padding: 0.6rem 0.95rem 0.4rem;
+  border-radius: var(--ca-bubble-radius, 1rem);
   position: relative;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
-  word-break: break-word;
+  font-size: var(--ca-chat-font-size, 0.925rem);
   line-height: 1.45;
+  word-break: break-word;
+  transition: background-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+@media (max-width: 767.98px) {
+  .ca-message-bubble {
+    max-width: 88%;
+  }
 }
 
 .ca-message-bubble.incoming {
-  align-self: flex-start;
   background-color: var(--ca-bubble-in);
   color: var(--ca-bubble-in-text);
   border-bottom-left-radius: 0.25rem;
 }
 
 .ca-message-bubble.outgoing {
-  align-self: flex-end;
   background-color: var(--ca-bubble-out);
   color: var(--ca-bubble-out-text);
   border-bottom-right-radius: 0.25rem;
 }
 
 .ca-message-author {
-  font-size: 0.8rem;
+  font-size: 0.785rem;
   font-weight: 700;
-  color: var(--ca-primary);
-  margin-bottom: 0.2rem;
+  margin-bottom: 0.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  user-select: none;
 }
 
 .ca-message-text {
-  font-size: 0.925rem;
   white-space: pre-wrap;
+  margin: 0;
 }
 
 .ca-message-meta {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 0.35rem;
+  gap: 0.3rem;
   font-size: 0.7rem;
   color: var(--ca-text-muted);
   margin-top: 0.25rem;
   user-select: none;
+  float: right;
+  margin-left: 0.75rem;
 }
 
-/* Mensajes de sistema */
-.ca-message-system {
-  align-self: center;
-  max-width: 85%;
+/* Mensaje del Sistema */
+.ca-message-system-box {
   background-color: rgba(100, 116, 139, 0.12);
+  border: 1px solid rgba(100, 116, 139, 0.2);
   color: var(--ca-text-muted);
-  font-size: 0.785rem;
-  padding: 0.4rem 0.95rem;
-  border-radius: 0.75rem;
+  font-size: 0.8rem;
+  padding: 0.45rem 1.15rem;
+  border-radius: 1rem;
   text-align: center;
+  max-width: 85%;
   margin: 0.35rem 0;
 }
 
-/* Botones flotantes de navegación rápida (primer mensaje / último mensaje) */
+/* ==========================================================================
+   Archivos Multimedia Integrados en el Mensaje
+   ========================================================================== */
+.ca-media-attachment {
+  margin-top: 0.45rem;
+  margin-bottom: 0.25rem;
+}
+
+.ca-media-image {
+  max-width: 100%;
+  max-height: 320px;
+  border-radius: 0.65rem;
+  object-fit: cover;
+  cursor: pointer;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+  display: block;
+}
+.ca-media-image:hover {
+  opacity: 0.92;
+  transform: scale(1.01);
+}
+
+.ca-media-audio-player {
+  width: 100%;
+  min-width: 220px;
+  height: 40px;
+  border-radius: 20px;
+}
+
+.ca-media-video-player {
+  max-width: 100%;
+  max-height: 280px;
+  border-radius: 0.65rem;
+}
+
+.ca-media-file-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: 0.65rem;
+  background-color: rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--ca-border-color);
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.15s ease;
+}
+[data-bs-theme="dark"] .ca-media-file-card {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+.ca-media-file-card:hover {
+  background-color: rgba(5, 150, 105, 0.1);
+  border-color: var(--ca-primary);
+  color: var(--ca-primary);
+}
+
+.ca-media-missing {
+  padding: 0.5rem 0.75rem;
+  background-color: rgba(100, 116, 139, 0.08);
+  border: 1px dashed var(--ca-border-color);
+  border-radius: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--ca-text-muted);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* ==========================================================================
+   Controles Flotantes de Navegación Rápida
+   ========================================================================== */
 .ca-chat-floating-controls {
   position: absolute;
   right: 1.25rem;
   bottom: 1.5rem;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  z-index: 20;
+  gap: 0.6rem;
+  z-index: 25;
 }
+
 .ca-floating-btn {
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   background-color: var(--ca-bg-surface-elevated);
   color: var(--ca-text-main);
   border: 1px solid var(--ca-border-color);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  font-size: 1.15rem;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
+  padding: 0;
 }
 .ca-floating-btn:hover {
   background-color: var(--ca-primary);
   color: #ffffff;
   border-color: var(--ca-primary);
-  transform: scale(1.08);
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 6px 16px rgba(5, 150, 105, 0.35);
+}
+.ca-floating-btn:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* ==========================================================================
+   Fondos Personalizables del Visor
+   ========================================================================== */
+.chat-bg-default {
+  background-color: var(--ca-bg-body);
+}
+.chat-bg-mint {
+  background-color: #f0fdf4;
+}
+[data-bs-theme="dark"] .chat-bg-mint {
+  background-color: #06201a;
+}
+.chat-bg-doodle {
+  background-color: var(--ca-bg-body);
+  background-image: radial-gradient(rgba(100, 116, 139, 0.12) 1px, transparent 1px);
+  background-size: 18px 18px;
+}
+.chat-bg-parchment {
+  background-color: #fdfbf7;
+}
+[data-bs-theme="dark"] .chat-bg-parchment {
+  background-color: #16181b;
+}
+
+/* ==========================================================================
+   Densidad y Estilos de Burbujas
+   ========================================================================== */
+/* Densidad compacta */
+.density-compact {
+  --ca-chat-message-gap: 0.25rem;
+  --ca-chat-font-size: 0.85rem;
+}
+/* Densidad amplia */
+.density-spacious {
+  --ca-chat-message-gap: 0.9rem;
+  --ca-chat-font-size: 1rem;
+}
+
+/* Estilos de burbuja */
+.bubble-style-modern {
+  --ca-bubble-radius: 1.25rem;
+}
+.bubble-style-classic {
+  --ca-bubble-radius: 0.5rem;
+}
+.bubble-style-flat {
+  --ca-bubble-radius: 0.25rem;
+  box-shadow: none !important;
+  border: 1px solid var(--ca-border-color);
 }
