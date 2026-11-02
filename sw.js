@@ -3,7 +3,7 @@
  * Compatible con GitHub Pages (sin rutas absolutas al dominio raíz)
  */
 
-const CACHE_NAME = 'chatarchive-cache-v1.7.0';
+const CACHE_NAME = 'chatarchive-cache-v1.8.0';
 
 // Lista de recursos locales esenciales para funcionamiento 100% offline
 const STATIC_ASSETS = [
@@ -98,11 +98,46 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Interceptación de peticiones: Cache First con Network Fallback
+// Interceptación de peticiones: Cache First con Network Fallback y Web Share Target
 self.addEventListener('fetch', (event) => {
   // Ignorar esquemas no soportados (ej. chrome-extension://)
   if (!event.request.url.startsWith('http')) return;
 
+  const url = new URL(event.request.url);
+
+  // 1. Manejo del Web Share Target (Compartir desde WhatsApp u otras apps en Android)
+  if (event.request.method === 'POST' && url.searchParams.has('share-target')) {
+    event.respondWith((async () => {
+      try {
+        const formData = await event.request.formData();
+        const files = formData.getAll('chat_files');
+        const file = (files && files.length > 0)
+          ? files[0]
+          : (formData.get('file') || formData.get('files') || null);
+
+        if (file) {
+          const cache = await caches.open('chatarchive-shared-files');
+          const fileResponse = new Response(file, {
+            headers: {
+              'Content-Type': file.type || 'application/octet-stream',
+              'X-File-Name': encodeURIComponent(file.name || 'whatsapp-chat.zip')
+            }
+          });
+          await cache.put('incoming-shared-file', fileResponse);
+          console.log('[ChatArchive SW] Archivo compartido recibido y almacenado en caché:', file.name);
+        }
+      } catch (err) {
+        console.error('[ChatArchive SW] Error al procesar archivo compartido de Web Share Target:', err);
+      }
+
+      // Redirección HTTP 303 (See Other) a la pantalla de importación
+      const redirectUrl = new URL('./index.html#import?shared=true', event.request.url).href;
+      return Response.redirect(redirectUrl, 303);
+    })());
+    return;
+  }
+
+  // 2. Manejo ordinario de recursos offline
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       if (cachedResponse) {

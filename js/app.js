@@ -45,6 +45,11 @@ class App {
     }
     await state.updateStorageEstimate();
 
+    // Si la app se abrió recibiendo un archivo compartido mediante Web Share Target desde WhatsApp
+    if (window.location.search.includes('share-target') || window.location.hash.includes('shared=true')) {
+      window.location.hash = '#import?shared=true';
+    }
+
     // 5. Inicializar el enrutador cliente
     router.init();
 

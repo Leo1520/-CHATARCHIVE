@@ -267,7 +267,7 @@ export class TutorialManager {
               <li>Entra en la conversación que deseas respaldar.</li>
               <li>Toca el menú de opciones (tres puntos) y selecciona <strong>Más → Exportar chat</strong>.</li>
               <li>Elige si deseas <strong>Incluir multimedia</strong> (fotos, audios) o Solo texto.</li>
-              <li>Sube el archivo <strong>ZIP o TXT</strong> en la pestaña <strong>Importar</strong> de ChatArchive.</li>
+              <li><strong>¡Novedad en Android!</strong> En la pantalla de compartir, selecciona directamente <strong>ChatArchive</strong> para importarlo automáticamente, o sube el archivo <strong>ZIP o TXT</strong> en la pestaña <strong>Importar</strong>.</li>
             </ol>
 
             <div class="ca-tutorial-visual-card text-center py-2">

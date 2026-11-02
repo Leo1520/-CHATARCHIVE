@@ -35,5 +35,29 @@
       "type": "image/svg+xml",
       "purpose": "any maskable"
     }
-  ]
+  ],
+  "share_target": {
+    "action": "./index.html?share-target=true",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url",
+      "files": [
+        {
+          "name": "chat_files",
+          "accept": [
+            "application/zip",
+            "application/x-zip-compressed",
+            "application/x-zip",
+            "application/octet-stream",
+            "text/plain",
+            ".zip",
+            ".txt"
+          ]
+        }
+      ]
+    }
+  }
 }

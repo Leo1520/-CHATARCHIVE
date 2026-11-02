@@ -27,6 +27,33 @@ export function renderImporterView(container) {
             </a>
           </div>
 
+          <!-- Banner Informativo: Compartir Directo desde WhatsApp -->
+          <div class="card border-primary border-opacity-25 bg-ca-elevated shadow-sm rounded-4 mb-4 alert alert-dismissible fade show p-0" role="region" aria-label="Aviso de nueva función">
+            <div class="card-body p-3 p-md-4">
+              <div class="d-flex align-items-start gap-3">
+                <div class="ca-pwa-icon-box rounded-3 p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 48px; height: 48px; font-size: 1.45rem; background-color: rgba(5, 150, 105, 0.15); color: var(--ca-primary);">
+                  <i class="bi bi-share-fill" aria-hidden="true"></i>
+                </div>
+                <div class="flex-grow-1 min-w-0">
+                  <div class="d-flex align-items-center justify-content-between mb-1">
+                    <div class="d-flex align-items-center gap-2">
+                      <span class="badge bg-primary text-white rounded-pill px-2 py-1 small">¡Nuevo!</span>
+                      <h2 class="h6 fw-bold mb-0 text-ca-main">Compartir directo desde WhatsApp</h2>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar aviso"></button>
+                  </div>
+                  <p class="text-ca-muted small mb-2" style="font-size: 0.835rem; line-height: 1.45;">
+                    ¡Ya no necesitas guardar ni buscar el archivo en las carpetas de tu teléfono! Al exportar un chat en WhatsApp (o tocar los 3 puntos en un archivo ZIP de chat), pulsa <strong>Compartir</strong> y selecciona <strong>ChatArchive</strong> para importarlo automáticamente aquí.
+                  </p>
+                  <div class="d-flex flex-wrap align-items-center gap-3 small text-ca-muted" style="font-size: 0.78rem;">
+                    <span><i class="bi bi-phone text-success me-1" aria-hidden="true"></i> Disponible en Android con la PWA instalada</span>
+                    <span><i class="bi bi-shield-check text-success me-1" aria-hidden="true"></i> 100% privado en tu equipo</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- Zona Drag & Drop -->
           <div class="card bg-ca-surface border-ca shadow-sm rounded-4 mb-4" id="importMainCard">
             <div class="card-body p-4 p-md-5">
@@ -187,7 +214,7 @@ export function renderImporterView(container) {
                     <li>Toca el menú de <strong>tres puntos</strong> en la esquina superior derecha y selecciona <strong>Más</strong>.</li>
                     <li>Elige <strong>Exportar chat</strong>.</li>
                     <li>Selecciona <strong>"Incluir archivos"</strong> (para guardar fotos, audios y documentos) o <strong>"Sin archivos"</strong> (solo texto).</li>
-                    <li>Guarda el archivo resultante (<code>.zip</code> o <code>.txt</code>) y arrástralo aquí.</li>
+                    <li><strong>Directo a la app (Recomendado):</strong> En el menú de compartir de Android, selecciona <strong>ChatArchive</strong> para importarlo automáticamente sin descargarlo a mano. También puedes guardar el archivo (<code>.zip</code> o <code>.txt</code>) y arrastrarlo aquí.</li>
                   </ol>
                 </div>
 
@@ -350,6 +377,35 @@ function setupImporterInteractions(container) {
         showToast('Error de Almacenamiento', err.message || 'No se pudo guardar la conversación en la base de datos.', 'danger');
       }
     });
+  }
+
+  // Comprobar si hay un archivo recibido mediante Web Share Target (Compartir desde WhatsApp)
+  checkForSharedFile(container);
+}
+
+/**
+ * Comprueba si el Service Worker recibió un archivo compartido desde WhatsApp vía Web Share Target
+ */
+async function checkForSharedFile(container) {
+  try {
+    if ('caches' in window) {
+      const cache = await caches.open('chatarchive-shared-files');
+      const response = await cache.match('incoming-shared-file');
+      if (response) {
+        const blob = await response.blob();
+        const rawFileName = response.headers.get('X-File-Name') || 'whatsapp-chat.zip';
+        const fileName = decodeURIComponent(rawFileName);
+        const file = new File([blob], fileName, { type: blob.type || 'application/zip' });
+
+        // Eliminar de la caché para no reprocesar en la siguiente visita
+        await cache.delete('incoming-shared-file');
+
+        showToast('¡Archivo Recibido!', `Se recibió "${fileName}" directamente desde WhatsApp. Procesando conversación...`, 'info', 3500);
+        processSelectedFile(file, container);
+      }
+    }
+  } catch (err) {
+    console.warn('[ChatArchive] Error al comprobar archivo compartido:', err);
   }
 }
 

@@ -26,6 +26,42 @@ export async function renderDashboard(container) {
 
   const { usage, quota, percent } = state.storageEstimate;
 
+  const isShareBannerDismissed = localStorage.getItem('chatarchive_share_banner_dismissed') === 'true';
+
+  const shareBannerHtml = isShareBannerDismissed ? '' : `
+    <!-- Banner de Nueva Función: Compartir Directo desde WhatsApp -->
+    <div class="card border-primary border-opacity-25 bg-ca-elevated shadow-sm rounded-4 mb-4 alert alert-dismissible fade show p-0" id="dashShareFeatureBanner" role="region" aria-label="Aviso de nueva función">
+      <div class="card-body p-3 p-md-4">
+        <div class="d-flex align-items-start gap-3">
+          <div class="ca-pwa-icon-box rounded-3 p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 48px; height: 48px; font-size: 1.45rem; background-color: rgba(5, 150, 105, 0.15); color: var(--ca-primary);">
+            <i class="bi bi-share-fill" aria-hidden="true"></i>
+          </div>
+          <div class="flex-grow-1 min-w-0">
+            <div class="d-flex align-items-center justify-content-between mb-1">
+              <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-primary text-white rounded-pill px-2 py-1 small">¡Nuevo!</span>
+                <h2 class="h6 fw-bold mb-0 text-ca-main">Importa chats compartiendo directo desde WhatsApp</h2>
+              </div>
+              <button type="button" class="btn-close" id="btnDismissDashShareBanner" data-bs-dismiss="alert" aria-label="Cerrar aviso"></button>
+            </div>
+            <p class="text-ca-muted small mb-3" style="font-size: 0.84rem; line-height: 1.45;">
+              ¡Olvídate de buscar archivos ZIP en las carpetas de tu teléfono! Al exportar un chat en WhatsApp (o tocar los 3 puntos en un archivo ZIP de chat), pulsa <strong>Compartir</strong> y elige <strong>ChatArchive</strong>. Tu chat se abrirá y procesará de inmediato.
+            </p>
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+              <div class="d-flex flex-wrap align-items-center gap-3 small text-ca-muted" style="font-size: 0.78rem;">
+                <span><i class="bi bi-phone text-success me-1" aria-hidden="true"></i> Disponible en Android con la PWA</span>
+                <span><i class="bi bi-shield-check text-success me-1" aria-hidden="true"></i> 100% privado y seguro</span>
+              </div>
+              <a href="#import" class="btn btn-ca-primary btn-sm px-3">
+                <i class="bi bi-arrow-right me-1" aria-hidden="true"></i> Probar en Importación
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
   const html = `
     <div class="container-xl py-4">
       <!-- Encabezado de Bienvenida -->
@@ -50,6 +86,8 @@ export async function renderDashboard(container) {
           </a>
         </div>
       </div>
+
+      ${shareBannerHtml}
 
       <!-- Banner de Privacidad Absoluta -->
       <div class="ca-privacy-banner mb-4">
@@ -201,6 +239,13 @@ export async function renderDashboard(container) {
   `;
 
   container.innerHTML = html;
+
+  const btnDismiss = container.querySelector('#btnDismissDashShareBanner');
+  if (btnDismiss) {
+    btnDismiss.addEventListener('click', () => {
+      localStorage.setItem('chatarchive_share_banner_dismissed', 'true');
+    });
+  }
 }
 
 function renderRecentChatsContent(chats) {
