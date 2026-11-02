@@ -350,3 +350,86 @@
   box-shadow: none !important;
   border: 1px solid var(--ca-border-color);
 }
+
+/* ==========================================================================
+   Buscador Avanzado Integrado en el Visor
+   ========================================================================== */
+.ca-chat-search-bar {
+  background-color: var(--ca-navbar-bg);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--ca-border-color);
+  padding: 0.5rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  z-index: 19;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  animation: slideDownSearch 0.2s ease-out;
+}
+
+@keyframes slideDownSearch {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.ca-search-counter-badge {
+  font-size: 0.785rem;
+  font-weight: 600;
+  color: var(--ca-text-muted);
+  white-space: nowrap;
+  padding: 0.35rem 0.65rem;
+  background-color: var(--ca-bg-surface-elevated);
+  border: 1px solid var(--ca-border-color);
+  border-radius: 2rem;
+}
+
+/* Animación de Resaltado del Mensaje Encontrado */
+.ca-message-highlight {
+  animation: highlightMessagePulse 2.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes highlightMessagePulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(5, 150, 105, 0.65);
+    filter: brightness(1.25);
+  }
+  20% {
+    transform: scale(1.02);
+    box-shadow: 0 0 0 10px rgba(5, 150, 105, 0.25);
+    filter: brightness(1.35);
+  }
+  40% {
+    transform: scale(1);
+    box-shadow: 0 0 0 18px rgba(5, 150, 105, 0);
+    filter: brightness(1.2);
+  }
+  70% {
+    filter: brightness(1.1);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+    filter: brightness(1);
+  }
+}
+
+.search-match-text {
+  background-color: #fef08a;
+  color: #854d0e;
+  padding: 0 2px;
+  border-radius: 2px;
+  font-weight: 600;
+}
+[data-bs-theme="dark"] .search-match-text {
+  background-color: #854d0e;
+  color: #fef08a;
+}
+

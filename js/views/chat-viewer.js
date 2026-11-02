@@ -1,12 +1,13 @@
 /**
  * ChatArchive - Visor Avanzado de Conversaciones (Chat Viewer)
- * Reconstrucción visual de WhatsApp, carga progresiva, multimedia, personalización y navegación
+ * Reconstrucción visual de WhatsApp, carga progresiva, multimedia, personalización y buscador integrado
  */
 
 import { ConversationsRepository } from '../database/conversations.js';
 import { MessagesRepository } from '../database/messages.js';
 import { formatDate, escapeHTML, showToast } from '../utils/helpers.js';
 import { mediaManager } from '../import/media-handler.js';
+import { ChatSearchController } from './search.js';
 import { CONFIG } from '../core/config.js';
 
 // Preferencias locales del visor
@@ -85,6 +86,17 @@ export async function renderChatViewer(container, params) {
 
         <!-- Acciones de la Cabecera -->
         <div class="d-flex align-items-center gap-1">
+          <!-- Botón de Búsqueda Avanzada -->
+          <button 
+            type="button" 
+            class="btn btn-sm btn-outline-secondary btn-icon-only border-0" 
+            id="btnToggleChatSearch"
+            title="Buscar en la conversación" 
+            aria-label="Buscar en la conversación"
+          >
+            <i class="bi bi-search" aria-hidden="true"></i>
+          </button>
+
           <!-- Botón de Personalización Visual -->
           <button 
             type="button" 
@@ -108,6 +120,74 @@ export async function renderChatViewer(container, params) {
           </button>
         </div>
       </header>
+
+      <!-- Barra de Búsqueda Desplegable en el Chat -->
+      <div class="ca-chat-search-bar d-none" id="chatSearchBar">
+        <div class="input-group input-group-sm flex-grow-1">
+          <span class="input-group-text bg-transparent border-ca text-ca-muted">
+            <i class="bi bi-search" aria-hidden="true"></i>
+          </span>
+          <input 
+            type="search" 
+            id="chatSearchInput" 
+            class="form-control bg-transparent border-ca text-ca-main" 
+            placeholder="Buscar palabras, frases o fechas..." 
+            aria-label="Buscar en esta conversación"
+          >
+        </div>
+
+        <!-- Spinner y Contador de Coincidencias -->
+        <div class="spinner-border spinner-border-sm text-primary d-none" id="searchSpinner" role="status">
+          <span class="visually-hidden">Buscando...</span>
+        </div>
+        <span class="ca-search-counter-badge" id="searchCounterBadge">0 resultados</span>
+
+        <!-- Controles de Navegación entre Resultados -->
+        <button 
+          type="button" 
+          class="btn btn-sm btn-outline-secondary btn-icon-only" 
+          id="btnSearchPrev" 
+          title="Coincidencia anterior" 
+          aria-label="Coincidencia anterior"
+          disabled
+        >
+          <i class="bi bi-chevron-up" aria-hidden="true"></i>
+        </button>
+        <button 
+          type="button" 
+          class="btn btn-sm btn-outline-secondary btn-icon-only" 
+          id="btnSearchNext" 
+          title="Coincidencia siguiente" 
+          aria-label="Coincidencia siguiente"
+          disabled
+        >
+          <i class="bi bi-chevron-down" aria-hidden="true"></i>
+        </button>
+
+        <!-- Botón para ver lista completa de resultados -->
+        <button 
+          type="button" 
+          class="btn btn-sm btn-outline-secondary btn-icon-only" 
+          id="btnOpenSearchResultsList" 
+          title="Ver lista de coincidencias" 
+          aria-label="Ver lista de coincidencias"
+          data-bs-toggle="offcanvas" 
+          data-bs-target="#searchResultsOffcanvas"
+        >
+          <i class="bi bi-list-ul" aria-hidden="true"></i>
+        </button>
+
+        <!-- Botón Cerrar Búsqueda -->
+        <button 
+          type="button" 
+          class="btn btn-sm btn-outline-secondary btn-icon-only border-0" 
+          id="btnCloseChatSearch" 
+          title="Cerrar búsqueda" 
+          aria-label="Cerrar búsqueda"
+        >
+          <i class="bi bi-x-lg" aria-hidden="true"></i>
+        </button>
+      </div>
 
       <!-- Área de Mensajes con Scroll -->
       <main class="ca-chat-messages-container" id="chatMessagesArea" role="log" aria-live="polite">
@@ -143,6 +223,22 @@ export async function renderChatViewer(container, params) {
       </div>
     </div>
 
+    <!-- Offcanvas de Resultados de Búsqueda -->
+    <div class="offcanvas offcanvas-end bg-ca-surface border-start border-ca" tabindex="-1" id="searchResultsOffcanvas" aria-labelledby="searchResultsLabel">
+      <div class="offcanvas-header border-bottom border-ca">
+        <h5 class="offcanvas-title fw-bold d-flex align-items-center gap-2" id="searchResultsLabel">
+          <i class="bi bi-search text-primary" aria-hidden="true"></i>
+          <span>Coincidencias Encontradas</span>
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Cerrar"></button>
+      </div>
+      <div class="offcanvas-body p-3" id="searchResultsOffcanvasList">
+        <div class="text-center py-4 text-ca-muted small">
+          Escribe un término en la barra de búsqueda para ver los resultados aquí.
+        </div>
+      </div>
+    </div>
+
     <!-- Offcanvas de Personalización Visual del Visor -->
     <div class="offcanvas offcanvas-end bg-ca-surface border-start border-ca" tabindex="-1" id="customizerOffcanvas" aria-labelledby="customizerLabel">
       <div class="offcanvas-header border-bottom border-ca">
@@ -153,7 +249,6 @@ export async function renderChatViewer(container, params) {
         <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Cerrar"></button>
       </div>
       <div class="offcanvas-body">
-        <!-- Modo de Densidad -->
         <div class="mb-4">
           <label class="form-label small fw-semibold text-ca-muted mb-2">Densidad de Mensajes</label>
           <div class="btn-group w-100" role="group">
@@ -163,7 +258,6 @@ export async function renderChatViewer(container, params) {
           </div>
         </div>
 
-        <!-- Estilo de Burbujas -->
         <div class="mb-4">
           <label class="form-label small fw-semibold text-ca-muted mb-2">Estilo de Burbuja</label>
           <div class="btn-group w-100" role="group">
@@ -173,7 +267,6 @@ export async function renderChatViewer(container, params) {
           </div>
         </div>
 
-        <!-- Fondo del Chat -->
         <div class="mb-4">
           <label class="form-label small fw-semibold text-ca-muted mb-2">Fondo del Visor</label>
           <div class="row g-2">
@@ -202,11 +295,6 @@ export async function renderChatViewer(container, params) {
               </button>
             </div>
           </div>
-        </div>
-
-        <div class="p-3 border-ca border rounded-3 bg-ca-elevated small text-ca-muted">
-          <i class="bi bi-info-circle me-1" aria-hidden="true"></i>
-          Las personalizaciones no alteran los mensajes originales almacenados.
         </div>
       </div>
     </div>
@@ -268,7 +356,7 @@ export async function renderChatViewer(container, params) {
       </div>
     </div>
 
-    <!-- Modal / Lightbox para Ver Imágenes a Pantalla Completa -->
+    <!-- Modal Lightbox para Imágenes -->
     <div class="modal fade" id="imageLightboxModal" tabindex="-1" aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content bg-transparent border-0 shadow-none">
@@ -285,8 +373,8 @@ export async function renderChatViewer(container, params) {
   container.innerHTML = html;
 
   // Iniciar la carga progresiva de mensajes
-  initProgressiveMessageLoading(conversation, container, participantColors);
-  setupViewerControls(conversation, container);
+  const chatContext = await initProgressiveMessageLoading(conversation, container, participantColors);
+  setupViewerControls(conversation, container, chatContext);
 }
 
 /**
@@ -302,7 +390,6 @@ async function initProgressiveMessageLoading(conversation, container, participan
   let hasMore = true;
   let lastRenderedDateKey = null;
 
-  // Determinar remitente saliente ("outgoing"): el que más mensajes tiene o "Tú"
   const outgoingSender = determineOutgoingSender(conversation.participants);
 
   const loadNextBatch = async () => {
@@ -326,9 +413,7 @@ async function initProgressiveMessageLoading(conversation, container, participan
         return;
       }
 
-      // Renderizar el bloque de mensajes
       for (const msg of batch) {
-        // Separador de fecha si cambia de día
         if (msg.dateKey && msg.dateKey !== lastRenderedDateKey) {
           lastRenderedDateKey = msg.dateKey;
           const dateSeparator = document.createElement('div');
@@ -355,7 +440,6 @@ async function initProgressiveMessageLoading(conversation, container, participan
   // Cargar primer lote
   await loadNextBatch();
 
-  // Escuchar scroll para carga infinita hacia abajo
   messagesArea.addEventListener('scroll', () => {
     const scrollBottom = messagesArea.scrollHeight - messagesArea.scrollTop - messagesArea.clientHeight;
     if (scrollBottom < 150 && hasMore && !isFetching) {
@@ -363,22 +447,36 @@ async function initProgressiveMessageLoading(conversation, container, participan
     }
   });
 
-  // Guardar función en el contenedor para controles de salto
-  container._chatLoader = {
+  const chatContext = {
     loadAllUntilEnd: async () => {
       while (hasMore) {
         await loadNextBatch();
       }
       messagesArea.scrollTop = messagesArea.scrollHeight;
+    },
+    loadChunkAroundIndex: async (targetIndex) => {
+      const chunk = await MessagesRepository.getMessagesAroundIndex(conversation.id, targetIndex, 25, 30);
+      for (const msg of chunk) {
+        // Verificar si ya existe en el DOM
+        if (!messagesArea.querySelector(`[data-msg-index="${msg.index}"]`)) {
+          const msgRow = await renderMessageRow(msg, outgoingSender, conversation.id, participantColors);
+          messagesArea.appendChild(msgRow);
+        }
+      }
     }
   };
+
+  container._chatLoader = chatContext;
+  return chatContext;
 }
 
 /**
- * Renderiza un mensaje individual (burbuja, adjuntos, metadatos)
+ * Renderiza un mensaje individual con data-msg-index para localización del buscador
  */
 async function renderMessageRow(msg, outgoingSender, conversationId, participantColors) {
   const row = document.createElement('div');
+  const msgIndex = msg.index !== undefined ? msg.index : msg.id;
+  row.setAttribute('data-msg-index', msgIndex);
 
   if (msg.type === 'system') {
     row.className = 'ca-message-row system';
@@ -397,14 +495,12 @@ async function renderMessageRow(msg, outgoingSender, conversationId, participant
   const bubble = document.createElement('div');
   bubble.className = `ca-message-bubble ${isOutgoing ? 'outgoing' : 'incoming'}`;
 
-  // Nombre de autor si es mensaje entrante (en grupos)
   let authorHtml = '';
   if (!isOutgoing && msg.sender) {
     const color = participantColors[msg.sender] || 'var(--ca-primary)';
     authorHtml = `<div class="ca-message-author" style="color: ${color};">${escapeHTML(msg.sender)}</div>`;
   }
 
-  // Contenido multimedia adjunto si existe
   let mediaHtml = '';
   if (msg.attachment) {
     const { fileName, mediaType, isOmitted } = msg.attachment;
@@ -417,7 +513,6 @@ async function renderMessageRow(msg, outgoingSender, conversationId, participant
         </div>
       `;
     } else if (fileName) {
-      // Consultar Blob en IndexedDB
       const blob = await MessagesRepository.getMediaBlob(conversationId, fileName);
 
       if (blob) {
@@ -449,7 +544,6 @@ async function renderMessageRow(msg, outgoingSender, conversationId, participant
             </div>
           `;
         } else {
-          // Documento u otro archivo
           mediaHtml = `
             <div class="ca-media-attachment">
               <a href="${objectUrl}" download="${escapeHTML(fileName)}" class="ca-media-file-card" target="_blank">
@@ -463,7 +557,6 @@ async function renderMessageRow(msg, outgoingSender, conversationId, participant
           `;
         }
       } else {
-        // Archivo no encontrado en IndexedDB
         mediaHtml = `
           <div class="ca-media-missing my-1">
             <i class="bi ${mediaManager.getIconClass(fileName)}" aria-hidden="true"></i>
@@ -474,7 +567,6 @@ async function renderMessageRow(msg, outgoingSender, conversationId, participant
     }
   }
 
-  // Texto del mensaje
   let textHtml = '';
   if (msg.text && !msg.attachment) {
     textHtml = `<p class="ca-message-text">${escapeHTML(msg.text)}</p>`;
@@ -482,7 +574,6 @@ async function renderMessageRow(msg, outgoingSender, conversationId, participant
     textHtml = `<p class="ca-message-text mt-1">${escapeHTML(msg.text)}</p>`;
   }
 
-  // Metadatos (Hora)
   const metaHtml = `
     <span class="ca-message-meta">
       <span>${escapeHTML(msg.rawTime || '')}</span>
@@ -492,7 +583,6 @@ async function renderMessageRow(msg, outgoingSender, conversationId, participant
   bubble.innerHTML = `${authorHtml}${mediaHtml}${textHtml}${metaHtml}`;
   row.appendChild(bubble);
 
-  // Listener para lightbox de imagen
   const imgEl = bubble.querySelector('.ca-media-image');
   if (imgEl) {
     imgEl.addEventListener('click', () => {
@@ -513,14 +603,54 @@ async function renderMessageRow(msg, outgoingSender, conversationId, participant
 }
 
 /**
- * Configura los botones flotantes de salto y los modales de personalización
+ * Configura los botones flotantes, modales y el buscador integrado
  */
-function setupViewerControls(conversation, container) {
+function setupViewerControls(conversation, container, chatContext) {
   const messagesArea = container.querySelector('#chatMessagesArea');
   const btnScrollTop = container.querySelector('#btnScrollToTop');
   const btnScrollBottom = container.querySelector('#btnScrollToBottom');
   const btnCustomizer = container.querySelector('#btnOpenCustomizer');
   const btnInfo = container.querySelector('#btnOpenChatInfo');
+  const btnToggleSearch = container.querySelector('#btnToggleChatSearch');
+  const btnCloseSearch = container.querySelector('#btnCloseChatSearch');
+  const searchInput = container.querySelector('#chatSearchInput');
+  const btnSearchPrev = container.querySelector('#btnSearchPrev');
+  const btnSearchNext = container.querySelector('#btnSearchNext');
+
+  // Inicializar controlador de búsqueda
+  const searchCtrl = new ChatSearchController(conversation, chatContext);
+
+  if (btnToggleSearch) {
+    btnToggleSearch.addEventListener('click', () => searchCtrl.toggleSearchBar());
+  }
+
+  if (btnCloseSearch) {
+    btnCloseSearch.addEventListener('click', () => searchCtrl.closeSearch());
+  }
+
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => searchCtrl.onSearchInput(e.target.value));
+    searchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        if (e.shiftKey) {
+          searchCtrl.prevMatch();
+        } else {
+          searchCtrl.nextMatch();
+        }
+      } else if (e.key === 'Escape') {
+        searchCtrl.closeSearch();
+      }
+    });
+  }
+
+  if (btnSearchPrev) {
+    btnSearchPrev.addEventListener('click', () => searchCtrl.prevMatch());
+  }
+
+  if (btnSearchNext) {
+    btnSearchNext.addEventListener('click', () => searchCtrl.nextMatch());
+  }
 
   // 1. Ir al primer mensaje
   if (btnScrollTop && messagesArea) {
@@ -532,8 +662,8 @@ function setupViewerControls(conversation, container) {
   // 2. Ir al último mensaje
   if (btnScrollBottom && messagesArea) {
     btnScrollBottom.addEventListener('click', async () => {
-      if (container._chatLoader) {
-        await container._chatLoader.loadAllUntilEnd();
+      if (chatContext) {
+        await chatContext.loadAllUntilEnd();
       } else {
         messagesArea.scrollTo({ top: messagesArea.scrollHeight, behavior: 'smooth' });
       }
@@ -568,7 +698,6 @@ function setupViewerControls(conversation, container) {
       const val = btn.getAttribute('data-val');
       const currentPrefs = getViewerPreferences();
 
-      // Desmarcar hermanos
       btn.parentElement.parentElement?.querySelectorAll(`[data-pref="${prefType}"]`).forEach(b => b.classList.remove('active', 'border-primary'));
       btn.classList.add('active', 'border-primary');
 
@@ -593,11 +722,8 @@ function setupViewerControls(conversation, container) {
 
 function determineOutgoingSender(participants) {
   if (!participants || participants.length === 0) return null;
-  // Si alguien se llama "Tú" o "You"
   const you = participants.find(p => p.name.toLowerCase() === 'tú' || p.name.toLowerCase() === 'you');
   if (you) return you.name;
-
-  // En conversaciones 1 a 1, asumir el segundo con más mensajes o el primero
   return participants[0]?.name || null;
 }
 

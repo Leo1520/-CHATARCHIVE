@@ -194,4 +194,37 @@ export class MessagesRepository {
       request.onerror = () => reject(request.error);
     });
   }
+
+  /**
+   * Obtiene todos los mensajes de una conversación para indexación o búsqueda
+   * @param {string} conversationId
+   * @returns {Promise<Array<Object>>}
+   */
+  static async getAllMessagesByConversation(conversationId) {
+    const db = await dbService.getDB();
+
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction('messages', 'readonly');
+      const store = tx.objectStore('messages');
+      const index = store.index('conversationId');
+      const request = index.getAll(IDBKeyRange.only(conversationId));
+
+      request.onsuccess = () => resolve(request.result || []);
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  /**
+   * Obtiene un bloque de mensajes alrededor de un índice objetivo para saltos de búsqueda
+   * @param {string} conversationId
+   * @param {number} targetIndex Índice central del mensaje
+   * @param {number} countBefore Mensajes a incluir antes
+   * @param {number} countAfter Mensajes a incluir después
+   * @returns {Promise<Array<Object>>}
+   */
+  static async getMessagesAroundIndex(conversationId, targetIndex, countBefore = 20, countAfter = 35) {
+    const startIndex = Math.max(0, targetIndex - countBefore);
+    const limit = countBefore + countAfter + 1;
+    return this.getMessagesByConversation(conversationId, startIndex, limit);
+  }
 }
