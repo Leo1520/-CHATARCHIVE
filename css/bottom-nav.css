@@ -15,7 +15,7 @@
   --bnav-active-bubble-bg: #ffffff;
   --bnav-active-content-color: #000000;
   --bnav-inactive-color: #ffffff;
-  --bnav-bubble-size: 64px;
+  --bnav-bubble-size: 58px;
 }
 
 /* ==========================================================================
@@ -98,13 +98,13 @@
 }
 
 .ca-bnav-icon {
-  font-size: 1.35rem;
+  font-size: 1.25rem;
   line-height: 1;
   color: var(--bnav-inactive-color);
 }
 
 .ca-bnav-label {
-  font-size: 0.72rem;
+  font-size: 0.70rem;
   font-weight: 500;
   letter-spacing: 0.2px;
   line-height: 1.1;
@@ -123,7 +123,7 @@
    ========================================================================== */
 .ca-bnav-active-bubble {
   position: absolute;
-  top: -24px;
+  top: -22px;
   left: 0;
   width: var(--bnav-bubble-size);
   height: var(--bnav-bubble-size);
@@ -137,13 +137,19 @@
   gap: 2px;
   z-index: 4;
   pointer-events: none;
-  transform: translateX(0);
-  will-change: transform;
+  transform: translate(0px, 0px);
+  will-change: transform, box-shadow;
+  transition: box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Estado B: Integrado dentro de la barra negra */
+.ca-bnav-active-bubble.is-settled {
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
 }
 
 /* Icono negro dentro del círculo blanco */
 .ca-bnav-active-icon {
-  font-size: 1.35rem;
+  font-size: 1.25rem;
   line-height: 1;
   color: var(--bnav-active-content-color);
   transition: transform 0.25s ease;
@@ -151,7 +157,7 @@
 
 /* Texto negro dentro del círculo blanco */
 .ca-bnav-active-label {
-  font-size: 0.68rem;
+  font-size: 0.65rem;
   font-weight: 700;
   line-height: 1;
   letter-spacing: 0.1px;
