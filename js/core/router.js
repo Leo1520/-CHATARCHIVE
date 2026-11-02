@@ -58,9 +58,22 @@ export class Router {
   }
 
   updateActiveNavLinks(currentRoute) {
+    const routeIndexMap = {
+      dashboard: 0,
+      library: 1,
+      chat: 1, // En el visor de chat la biblioteca permanece como origen activo
+      import: 2,
+      settings: 3
+    };
+
+    const bottomNav = document.getElementById('mobileBottomNav');
+    if (bottomNav && routeIndexMap[currentRoute] !== undefined) {
+      bottomNav.style.setProperty('--active-idx', routeIndexMap[currentRoute]);
+    }
+
     document.querySelectorAll('[data-route]').forEach(link => {
       const linkRoute = link.getAttribute('data-route');
-      if (linkRoute === currentRoute) {
+      if (linkRoute === currentRoute || (currentRoute === 'chat' && linkRoute === 'library')) {
         link.classList.add('active');
         link.setAttribute('aria-current', 'page');
       } else {

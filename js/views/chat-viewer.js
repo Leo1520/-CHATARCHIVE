@@ -447,13 +447,152 @@ async function initProgressiveMessageLoading(conversation, container, participan
     }
   });
 
-  const chatContext = {
-    loadAllUntilEnd: async () => {
-      while (hasMore) {
-        await loadNextBatch();
+  const jumpToEnd = async () => {
+    if (isFetching) return;
+
+    // Si ya no hay más mensajes por cargar (todos están en pantalla)
+    if (!hasMore) {
+      messagesArea.scrollTo({ top: messagesArea.scrollHeight, behavior: 'smooth' });
+      return;
+    }
+
+    const total = conversation.messagesCount || (await MessagesRepository.countByConversation(conversation.id));
+    const remaining = total - currentOffset;
+
+    // Si quedan pocos mensajes (menos de 100), cargarlos en 1-2 lotes
+    if (remaining <= 100) {
+      isFetching = true;
+      try {
+        while (hasMore && currentOffset < total) {
+          const batch = await MessagesRepository.getMessagesByConversation(conversation.id, currentOffset, pageSize);
+          if (batch.length === 0) {
+            hasMore = false;
+            break;
+          }
+          for (const msg of batch) {
+            if (msg.dateKey && msg.dateKey !== lastRenderedDateKey) {
+              lastRenderedDateKey = msg.dateKey;
+              const dateSeparator = document.createElement('div');
+              dateSeparator.className = 'ca-date-separator';
+              dateSeparator.textContent = msg.date ? formatDate(msg.date) : msg.rawDate;
+              messagesArea.appendChild(dateSeparator);
+            }
+            const msgRow = await renderMessageRow(msg, outgoingSender, conversation.id, participantColors);
+            messagesArea.appendChild(msgRow);
+          }
+          currentOffset += batch.length;
+          if (batch.length < pageSize) hasMore = false;
+        }
+      } finally {
+        isFetching = false;
       }
-      messagesArea.scrollTop = messagesArea.scrollHeight;
-    },
+      messagesArea.scrollTo({ top: messagesArea.scrollHeight, behavior: 'smooth' });
+      return;
+    }
+
+    // Si quedan miles de mensajes (ej. 26.000 msgs), saltar instantáneamente al último bloque
+    isFetching = true;
+    try {
+      const lastBatchOffset = Math.max(0, total - 50);
+      const lastBatch = await MessagesRepository.getMessagesByConversation(conversation.id, lastBatchOffset, 50);
+
+      messagesArea.innerHTML = '';
+      lastRenderedDateKey = null;
+
+      // Banner interactivo para recuperar mensajes anteriores si el usuario lo desea
+      const notice = document.createElement('div');
+      notice.className = 'text-center py-2 mb-3 ca-jumped-banner';
+      notice.innerHTML = `
+        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill shadow-sm" id="btnLoadEarlierChunk">
+          <i class="bi bi-clock-history me-1" aria-hidden="true"></i> Cargar mensajes anteriores (${lastBatchOffset.toLocaleString()} restantes)
+        </button>
+      `;
+      messagesArea.appendChild(notice);
+
+      let earliestOffset = lastBatchOffset;
+      notice.querySelector('#btnLoadEarlierChunk')?.addEventListener('click', async () => {
+        const btn = notice.querySelector('#btnLoadEarlierChunk');
+        if (btn) {
+          btn.disabled = true;
+          btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span> Cargando...';
+        }
+        const prevOffset = Math.max(0, earliestOffset - 50);
+        const prevLimit = earliestOffset - prevOffset;
+        if (prevLimit > 0) {
+          const prevBatch = await MessagesRepository.getMessagesByConversation(conversation.id, prevOffset, prevLimit);
+          const frag = document.createDocumentFragment();
+          let prevDateKey = null;
+          for (const m of prevBatch) {
+            if (m.dateKey && m.dateKey !== prevDateKey) {
+              prevDateKey = m.dateKey;
+              const sep = document.createElement('div');
+              sep.className = 'ca-date-separator';
+              sep.textContent = m.date ? formatDate(m.date) : m.rawDate;
+              frag.appendChild(sep);
+            }
+            const row = await renderMessageRow(m, outgoingSender, conversation.id, participantColors);
+            frag.appendChild(row);
+          }
+          notice.after(frag);
+          earliestOffset = prevOffset;
+          if (earliestOffset <= 0) {
+            notice.remove();
+          } else if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = `<i class="bi bi-clock-history me-1" aria-hidden="true"></i> Cargar mensajes anteriores (${earliestOffset.toLocaleString()} restantes)`;
+          }
+        } else {
+          notice.remove();
+        }
+      });
+
+      for (const msg of lastBatch) {
+        if (msg.dateKey && msg.dateKey !== lastRenderedDateKey) {
+          lastRenderedDateKey = msg.dateKey;
+          const dateSeparator = document.createElement('div');
+          dateSeparator.className = 'ca-date-separator';
+          dateSeparator.textContent = msg.date ? formatDate(msg.date) : msg.rawDate;
+          messagesArea.appendChild(dateSeparator);
+        }
+        const msgRow = await renderMessageRow(msg, outgoingSender, conversation.id, participantColors);
+        messagesArea.appendChild(msgRow);
+      }
+
+      currentOffset = total;
+      hasMore = false;
+    } catch (err) {
+      console.error('[ChatArchive] Error al saltar al último mensaje:', err);
+    } finally {
+      isFetching = false;
+    }
+
+    setTimeout(() => {
+      messagesArea.scrollTo({ top: messagesArea.scrollHeight, behavior: 'smooth' });
+    }, 50);
+  };
+
+  const jumpToStart = async () => {
+    if (messagesArea.querySelector('[data-msg-index="0"]')) {
+      messagesArea.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    isFetching = true;
+    try {
+      messagesArea.innerHTML = '';
+      currentOffset = 0;
+      hasMore = true;
+      lastRenderedDateKey = null;
+      await loadNextBatch();
+    } finally {
+      isFetching = false;
+    }
+    messagesArea.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const chatContext = {
+    jumpToEnd,
+    jumpToStart,
     loadChunkAroundIndex: async (targetIndex) => {
       const chunk = await MessagesRepository.getMessagesAroundIndex(conversation.id, targetIndex, 25, 30);
       for (const msg of chunk) {
@@ -655,15 +794,19 @@ function setupViewerControls(conversation, container, chatContext) {
   // 1. Ir al primer mensaje
   if (btnScrollTop && messagesArea) {
     btnScrollTop.addEventListener('click', () => {
-      messagesArea.scrollTo({ top: 0, behavior: 'smooth' });
+      if (chatContext?.jumpToStart) {
+        chatContext.jumpToStart();
+      } else {
+        messagesArea.scrollTo({ top: 0, behavior: 'smooth' });
+      }
     });
   }
 
   // 2. Ir al último mensaje
   if (btnScrollBottom && messagesArea) {
-    btnScrollBottom.addEventListener('click', async () => {
-      if (chatContext) {
-        await chatContext.loadAllUntilEnd();
+    btnScrollBottom.addEventListener('click', () => {
+      if (chatContext?.jumpToEnd) {
+        chatContext.jumpToEnd();
       } else {
         messagesArea.scrollTo({ top: messagesArea.scrollHeight, behavior: 'smooth' });
       }

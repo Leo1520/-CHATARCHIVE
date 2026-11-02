@@ -66,6 +66,19 @@ class App {
       });
       this.updateThemeToggleIcon();
     }
+
+    // Navegación curva móvil: respuesta táctil instantánea al tocar cualquier pestaña
+    const bottomNav = document.getElementById('mobileBottomNav');
+    if (bottomNav) {
+      bottomNav.querySelectorAll('.ca-bottom-nav-item').forEach(item => {
+        item.addEventListener('click', () => {
+          const idx = item.getAttribute('data-index');
+          if (idx !== null) {
+            bottomNav.style.setProperty('--active-idx', idx);
+          }
+        });
+      });
+    }
   }
 
   updateThemeToggleIcon() {
