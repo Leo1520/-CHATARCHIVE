@@ -26,6 +26,7 @@
   <link rel="stylesheet" href="./css/components.css">
   <link rel="stylesheet" href="./css/chat.css">
   <link rel="stylesheet" href="./css/responsive.css">
+  <link rel="stylesheet" href="./css/bottom-nav.css">
 </head>
 <body>
   <div id="app">
@@ -106,34 +107,8 @@
     <!-- Contenido Dinámico de la Vista Activa -->
     <main id="mainContent" class="flex-grow-1" role="main"></main>
 
-    <!-- Barra de Navegación Inferior para Móviles (Curved Magic Bottom Nav - Estilo Imagen 3) -->
-    <nav class="ca-bottom-nav" aria-label="Navegación móvil" id="mobileBottomNav" style="--active-idx: 0;">
-      <div class="ca-bottom-nav-curve" id="navCurveIndicator" aria-hidden="true"></div>
-      <a href="#dashboard" class="ca-bottom-nav-item active" data-route="dashboard" data-index="0" aria-label="Inicio">
-        <div class="ca-bottom-nav-icon-wrap">
-          <i class="bi bi-house-door" aria-hidden="true"></i>
-        </div>
-        <span class="ca-bottom-nav-label">Inicio</span>
-      </a>
-      <a href="#library" class="ca-bottom-nav-item" data-route="library" data-index="1" aria-label="Biblioteca">
-        <div class="ca-bottom-nav-icon-wrap">
-          <i class="bi bi-collection" aria-hidden="true"></i>
-        </div>
-        <span class="ca-bottom-nav-label">Biblioteca</span>
-      </a>
-      <a href="#import" class="ca-bottom-nav-item" data-route="import" data-index="2" aria-label="Importar">
-        <div class="ca-bottom-nav-icon-wrap">
-          <i class="bi bi-cloud-arrow-up" aria-hidden="true"></i>
-        </div>
-        <span class="ca-bottom-nav-label">Importar</span>
-      </a>
-      <a href="#settings" class="ca-bottom-nav-item" data-route="settings" data-index="3" aria-label="Ajustes">
-        <div class="ca-bottom-nav-icon-wrap">
-          <i class="bi bi-gear" aria-hidden="true"></i>
-        </div>
-        <span class="ca-bottom-nav-label">Ajustes</span>
-      </a>
-    </nav>
+    <!-- Barra de Navegación Inferior Flotante (Floating Active Bottom Navigation - Estilo Imagen 2) -->
+    <nav class="ca-bottom-nav-container" id="bottomNavContainer" aria-label="Navegación móvil"></nav>
 
     <!-- Footer Discreto para Desktop -->
     <footer class="py-3 border-top border-ca mt-auto bg-ca-surface d-none d-md-block">

@@ -10,6 +10,7 @@ import { renderLibrary } from '../views/library.js';
 import { renderImporterView } from '../import/importer.js';
 import { renderSettings } from '../views/settings.js';
 import { renderChatViewer } from '../views/chat-viewer.js';
+import { setActiveBottomNavItem } from '../components/bottom-nav.js';
 
 export class Router {
   constructor() {
@@ -58,19 +59,11 @@ export class Router {
   }
 
   updateActiveNavLinks(currentRoute) {
-    const routeIndexMap = {
-      dashboard: 0,
-      library: 1,
-      chat: 1, // En el visor de chat la biblioteca permanece como origen activo
-      import: 2,
-      settings: 3
-    };
+    // Sincronizar componente de navegación móvil
+    const activeNavId = currentRoute === 'chat' ? 'library' : currentRoute;
+    setActiveBottomNavItem(activeNavId);
 
-    const bottomNav = document.getElementById('mobileBottomNav');
-    if (bottomNav && routeIndexMap[currentRoute] !== undefined) {
-      bottomNav.style.setProperty('--active-idx', routeIndexMap[currentRoute]);
-    }
-
+    // Sincronizar enlaces de navegación de escritorio
     document.querySelectorAll('[data-route]').forEach(link => {
       const linkRoute = link.getAttribute('data-route');
       if (linkRoute === currentRoute || (currentRoute === 'chat' && linkRoute === 'library')) {

@@ -1,0 +1,178 @@
+/**
+ * ChatArchive - Floating Active Bottom Navigation Bar
+ * Diseño basado en la referencia de Imagen 2:
+ * - Barra horizontal de color negro (#000000) con esquinas redondeadas
+ * - Elementos inactivos con iconos y texto blanco (#FFFFFF)
+ * - Elemento activo en círculo blanco (#FFFFFF) flotante que sobresale de la barra
+ * - Icono y texto del elemento activo en color negro (#000000)
+ * - Muesca cóncava suave en SVG que acompaña al círculo activo sin generar artefactos
+ * - Animación fluida de 300 ms con aceleración natural
+ */
+
+:root {
+  --bnav-height: 78px;
+  --bnav-bg: #000000;
+  --bnav-active-bubble-bg: #ffffff;
+  --bnav-active-content-color: #000000;
+  --bnav-inactive-color: #ffffff;
+  --bnav-bubble-size: 64px;
+}
+
+/* ==========================================================================
+   Contenedor Principal de la Barra
+   ========================================================================== */
+.ca-bottom-nav-container {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: calc(var(--bnav-height) + env(safe-area-inset-bottom, 0px));
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  z-index: 1040;
+  pointer-events: none; /* Los clics pasan a través salvo en la barra */
+  justify-content: center;
+  align-items: flex-end;
+}
+
+/* Barra física de navegación */
+.ca-bnav-bar {
+  position: relative;
+  width: 100%;
+  height: var(--bnav-height);
+  pointer-events: auto;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Lienzo SVG que dibuja la barra negra con el corte cóncavo suave */
+.ca-bnav-svg-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+  filter: drop-shadow(0 -6px 20px rgba(0, 0, 0, 0.45));
+}
+
+.ca-bnav-svg-path {
+  fill: var(--bnav-bg);
+}
+
+/* Lista horizontal de elementos de navegación */
+.ca-bnav-items-list {
+  position: relative;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  z-index: 3;
+}
+
+/* Cada opción de navegación */
+.ca-bnav-item {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+}
+
+/* Contenido dentro de cada opción inactiva */
+.ca-bnav-item-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  color: var(--bnav-inactive-color);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.ca-bnav-icon {
+  font-size: 1.35rem;
+  line-height: 1;
+  color: var(--bnav-inactive-color);
+}
+
+.ca-bnav-label {
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.2px;
+  line-height: 1.1;
+  color: var(--bnav-inactive-color);
+}
+
+/* Cuando el elemento está activo, su contenido normal en la barra se oculta suavemente */
+.ca-bnav-item.is-active .ca-bnav-item-content {
+  opacity: 0;
+  transform: scale(0.6);
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Círculo Blanco Flotante (Active Floating Bubble) - Imagen 2
+   ========================================================================== */
+.ca-bnav-active-bubble {
+  position: absolute;
+  top: -24px;
+  left: 0;
+  width: var(--bnav-bubble-size);
+  height: var(--bnav-bubble-size);
+  background-color: var(--bnav-active-bubble-bg);
+  border-radius: 50%;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  z-index: 4;
+  pointer-events: none;
+  transform: translateX(0);
+  will-change: transform;
+}
+
+/* Icono negro dentro del círculo blanco */
+.ca-bnav-active-icon {
+  font-size: 1.35rem;
+  line-height: 1;
+  color: var(--bnav-active-content-color);
+  transition: transform 0.25s ease;
+}
+
+/* Texto negro dentro del círculo blanco */
+.ca-bnav-active-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.1px;
+  color: var(--bnav-active-content-color);
+}
+
+/* ==========================================================================
+   Breakpoints Responsivos
+   ========================================================================== */
+@media (max-width: 991.98px) {
+  .ca-bottom-nav-container {
+    display: flex;
+  }
+
+  body {
+    padding-bottom: calc(var(--bnav-height) + 16px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+}
+
+@media (min-width: 992px) {
+  .ca-bottom-nav-container {
+    display: none !important;
+  }
+}

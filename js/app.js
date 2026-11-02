@@ -8,6 +8,7 @@ import { CONFIG } from './core/config.js';
 import { router } from './core/router.js';
 import { showToast } from './utils/helpers.js';
 import { ConversationsRepository } from './database/conversations.js';
+import { initBottomNav } from './components/bottom-nav.js';
 
 class App {
   constructor() {
@@ -45,13 +46,19 @@ class App {
     // 5. Inicializar el enrutador cliente
     router.init();
 
-    // 6. Registrar Service Worker para soporte PWA y modo Offline
+    // 6. Inicializar la barra de navegación inferior flotante (Mobile Bottom Nav)
+    const bnavContainer = document.getElementById('bottomNavContainer');
+    if (bnavContainer) {
+      initBottomNav(bnavContainer);
+    }
+
+    // 7. Registrar Service Worker para soporte PWA y modo Offline
     this.registerServiceWorker();
 
-    // 7. Configurar evento de instalación PWA
+    // 8. Configurar evento de instalación PWA
     this.setupPwaInstallPrompt();
 
-    // 8. Inicializar Tooltips de Bootstrap
+    // 9. Inicializar Tooltips de Bootstrap
     this.initTooltips();
   }
 
@@ -65,19 +72,6 @@ class App {
         this.updateThemeToggleIcon();
       });
       this.updateThemeToggleIcon();
-    }
-
-    // Navegación curva móvil: respuesta táctil instantánea al tocar cualquier pestaña
-    const bottomNav = document.getElementById('mobileBottomNav');
-    if (bottomNav) {
-      bottomNav.querySelectorAll('.ca-bottom-nav-item').forEach(item => {
-        item.addEventListener('click', () => {
-          const idx = item.getAttribute('data-index');
-          if (idx !== null) {
-            bottomNav.style.setProperty('--active-idx', idx);
-          }
-        });
-      });
     }
   }
 
