@@ -11,6 +11,7 @@ import { ConversationsRepository } from './database/conversations.js';
 import { initBottomNav } from './components/bottom-nav.js';
 import { tutorialManager } from './components/tutorial.js';
 import { pwaInstallBannerManager } from './components/pwa-install-banner.js';
+import { updateBannerManager } from './components/update-banner.js';
 
 class App {
   constructor() {
@@ -128,6 +129,9 @@ class App {
           scope: './'
         });
         console.log('[ChatArchive PWA] Service Worker registrado exitosamente:', registration.scope);
+
+        // Inicializar detector de actualizaciones y banner "Nueva versión disponible"
+        updateBannerManager.init(registration);
       } catch (err) {
         console.warn('[ChatArchive PWA] Error al registrar Service Worker:', err);
       }

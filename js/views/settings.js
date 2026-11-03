@@ -8,6 +8,7 @@ import { formatBytes, showToast } from '../utils/helpers.js';
 import { BackupExporter } from '../backup/export.js';
 import { BackupRestorer } from '../backup/restore.js';
 import { tutorialManager } from '../components/tutorial.js';
+import { updateBannerManager } from '../components/update-banner.js';
 
 let pendingValidationResult = null;
 
@@ -232,13 +233,18 @@ export function renderSettings(container) {
             </div>
           </div>
 
-          <!-- Sección: Información del Software -->
+          <!-- Sección: Información del Software y Actualizaciones -->
           <div class="text-center py-3">
             <div class="text-ca-muted small">
               <strong>${CONFIG.APP_NAME}</strong> versión ${CONFIG.APP_VERSION}
             </div>
             <div class="text-ca-muted small mt-1">
               Desarrollado para Android, Windows y Web • Compatible con GitHub Pages
+            </div>
+            <div class="mt-2">
+              <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" id="btnCheckUpdates">
+                <i class="bi bi-arrow-clockwise me-1" aria-hidden="true"></i> Buscar actualizaciones
+              </button>
             </div>
           </div>
 
@@ -455,6 +461,14 @@ function setupSettingsListeners(container) {
   if (btnRestartTutorial) {
     btnRestartTutorial.addEventListener('click', () => {
       tutorialManager.show(true);
+    });
+  }
+
+  // 7. Buscar actualizaciones manualmente
+  const btnCheckUpdates = container.querySelector('#btnCheckUpdates');
+  if (btnCheckUpdates) {
+    btnCheckUpdates.addEventListener('click', () => {
+      updateBannerManager.checkForUpdates(true);
     });
   }
 }

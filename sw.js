@@ -3,7 +3,7 @@
  * Compatible con GitHub Pages (sin rutas absolutas al dominio raíz)
  */
 
-const CACHE_NAME = 'chatarchive-cache-v1.8.0';
+const CACHE_NAME = 'chatarchive-cache-v1.8.1';
 
 // Lista de recursos locales esenciales para funcionamiento 100% offline
 const STATIC_ASSETS = [
@@ -42,6 +42,7 @@ const STATIC_ASSETS = [
   './js/components/bottom-nav.js',
   './js/components/tutorial.js',
   './js/components/pwa-install-banner.js',
+  './js/components/update-banner.js',
   './js/utils/helpers.js',
   './js/utils/dates.js',
   './js/utils/validation.js',
@@ -72,14 +73,22 @@ const STATIC_ASSETS = [
   './workers/search-worker.js'
 ];
 
-// Instalación: Cachear recursos estáticos
+// Instalación: Cachear recursos estáticos en segundo plano
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('[ChatArchive SW] Pre-cacheando recursos offline...');
+      console.log('[ChatArchive SW] Pre-cacheando recursos offline versión:', CACHE_NAME);
       return cache.addAll(STATIC_ASSETS);
-    }).then(() => self.skipWaiting())
+    })
   );
+});
+
+// Escuchar mensaje del cliente para activar la nueva versión bajo demanda (botón "Actualizar ahora")
+self.addEventListener('message', (event) => {
+  if (event.data && (event.data === 'SKIP_WAITING' || event.data.type === 'SKIP_WAITING')) {
+    console.log('[ChatArchive SW] Activando nueva versión por solicitud del usuario...');
+    self.skipWaiting();
+  }
 });
 
 // Activación: Limpieza de cachés antiguas sin tocar IndexedDB
@@ -88,7 +97,7 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((name) => {
-          if (name !== CACHE_NAME) {
+          if (name !== CACHE_NAME && name !== 'chatarchive-shared-files') {
             console.log('[ChatArchive SW] Eliminando versión de caché antigua:', name);
             return caches.delete(name);
           }
